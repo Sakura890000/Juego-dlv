@@ -196,7 +196,7 @@ def mover_personaje1_escena1():
      ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
 
-escena2() #inicia la segunda escena
+escena1() #inicia la segunda escena
 ventana.mainloop()
 
 
