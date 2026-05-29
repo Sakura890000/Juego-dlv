@@ -201,6 +201,7 @@ def mover_personaje1_escena1():
      ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
 
+<<<<<<< HEAD
 def escena3 ():
     global fondo_img, fondo, fondo_id
     global pj1_img, pj1, pj1_id 
@@ -291,6 +292,9 @@ def mover_personaje2_escena3():
         # ventana.after(200, mover_personaje2_escena3) #llama a esta funcion cada 50 milisegundos
 
 escena3() #inicia la tercera escena
+=======
+escena1() #inicia la segunda escena
+>>>>>>> 13ac0b427f6acdffdeaea4b68b8f6f8246554af7
 ventana.mainloop()
 
 
