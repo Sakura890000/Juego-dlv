@@ -8,29 +8,56 @@ from PIL import Image, ImageTk
 ventana = tk.Tk()
 canvas = tk.Canvas(ventana, width=700, height=690)
 canvas.pack()
+# ---- VAriables globales de cinematica ----
+fondo_img = None
+fondo = None
+fondo_id = None
 
-# Cargar la imagen de fondo
-fondo_img = Image.open("escenario 1 tienda de acampar.jpg")
-fondo = ImageTk.PhotoImage(fondo_img)
-fondo_id = canvas.create_image(0, 0, anchor="nw", image=fondo)
+pj1_img = None
+pj1 = None
+pj1_id = None
 
-#personaje 1
-pj1_img = Image.open("link.png") #importa imagen
-pj1_img = pj1_img.resize((150, 150))  #tamano de link ancho x alto
-pj1 = ImageTk.PhotoImage(pj1_img)   
-pj1_id = canvas.create_image(350, 570, anchor="center", image=pj1) #coordenadas de link x y
+pj2_img = None
+pj2 = None
+pj2_id = None
 
-#personaje 2
-pj2_img = Image.open("Frisk.png") #importa imagen
-pj2_img = pj2_img.resize((150, 150))  #tamano de zelda ancho x alto
-pj2 = ImageTk.PhotoImage(pj2_img)
-pj2_id = canvas.create_image(670, 590, anchor="center", image=pj2) #coordenadas de zelda x y
+direccion = 1 #1 para bajar, -1 para subir, 0 para detener
+balanceo_dir = 1
+
+def escena1():
+     global fondo_img, fondo, fondo_id
+     global pj1_img, pj1, pj1_id
+     global pj2_img, pj2, pj2_id
+     global direccion, balanceo_dir
+     
+     canvas.delete("all") #limpia el canvas para la nueva escena
+    # Cargar la imagen de fondo
+     fondo_img = Image.open("escenario 1 tienda de acampar.jpg")
+     fondo = ImageTk.PhotoImage(fondo_img)
+     fondo_id = canvas.create_image(0, 0, anchor="nw", image=fondo)
+
+    #personaje 1
+     pj1_img = Image.open("link.png") #importa imagen
+     pj1_img = pj1_img.resize((150, 150))  #tamano de link ancho x alto
+     pj1 = ImageTk.PhotoImage(pj1_img)   
+     pj1_id = canvas.create_image(350, 570, anchor="center", image=pj1) #coordenadas de link x y
+
+    #personaje 2
+     pj2_img = Image.open("Frisk.png") #importa imagen
+     pj2_img = pj2_img.resize((150, 150))  #tamano de zelda ancho x alto
+     pj2 = ImageTk.PhotoImage(pj2_img)
+     pj2_id = canvas.create_image(670, 590, anchor="center", image=pj2) #coordenadas de zelda x y
+     direccion = 1
+     balanceo_dir = 1
+     
+     mover_fondo1() #inicia el movimiento del fondo
+     mover_escena1() #inicia el movimiento de la escena
 
 
 #mover fondo
 
-direccion = 1 # 1 = abajo, -1 = arriba
-def mover_fondo():
+
+def mover_fondo1():
     global direccion
     canvas.move(fondo_id, 0, direccion *2 ) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, 0, direccion * 2)
@@ -46,12 +73,12 @@ def mover_fondo():
     elif x <= -250:
         direccion = 0
         
-    ventana.after(50, mover_fondo) #llama a esta funcion cada 50 milisegundos
+    ventana.after(50, mover_fondo1) #llama a esta funcion cada 50 milisegundos
 
     
-mover_fondo() #inicia el movimiento del fondo
 
-def mover_escena():
+
+def mover_escena1():
     global direccion
     canvas.move(fondo_id, -2, 0) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, -2, 0)
@@ -59,32 +86,117 @@ def mover_escena():
     x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
     
     if x >= -250:
-          ventana.after(50, mover_escena) 
+          ventana.after(50, mover_escena1) 
     else:
         canvas.move(fondo_id, 0, 0) #detiene el movimiento del fondo
         canvas.move(pj1_id, 0, 0)
         canvas.move(pj2_id, 0, 0)
 
-        ventana.after(2000, mover_personajes) #espera 2 segundos 
+        ventana.after(2000, mover_personajes_escena1) #espera 2 segundos 
         
-balanceo_dir = 1 # 1 = derecha, -1 = izquierda   
-mover_escena() #inicia el movimiento de la escena
-def mover_personajes():
+ 
+
+def mover_personajes_escena1():
     global balanceo_dir
     canvas.move(pj1_id, 0, balanceo_dir * 3) #mueve el personaje 1 en la direccion actual
     canvas.move(pj2_id, 0, balanceo_dir * 3) #mueve el personaje 2 en la direccion actual
     balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
 
     canvas.move(pj2_id, 5, 0)
-    ventana.after(500, mover_personaje1)
+    ventana.after(500, mover_personaje1_escena1)
     
-    ventana.after(40, mover_personajes) #llama a esta funcion cada 50 milisegundos
+    ventana.after(40, mover_personajes_escena1) #llama a esta funcion cada 50 milisegundos
     
-def mover_personaje1():
+def mover_personaje1_escena1():
      canvas.move(pj1_id, 5, 0)
-     ventana.after(80, mover_personaje1) #llama a esta funcion cada 50 milisegundos
+     ventana.after(80, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
+# escena1() #inicia la primera escena
+
+def escena2():
+    global fondo_img, fondo, fondo_id
+    global pj1_img, pj1, pj1_id 
+    global pj2_img, pj2, pj2_id
+    global direccion, balanceo_dir
+    
+    canvas.delete("all") #limpia el canvas para la nueva escena
+    
+    # Cargar la imagen de fondo
+    fondo_img = Image.open("escenario 2 bosque.jpg")
+    fondo_img = fondo_img.resize((1400, 700))
+    fondo = ImageTk.PhotoImage(fondo_img)
+    fondo_id = canvas.create_image(0, 0,anchor="nw", image=fondo)
+    
+    #personaje 1
+    pj1_img = Image.open("link lateral.png") #importa imagen 
+    pj1_img = pj1_img.resize((100, 100))
+    pj1 = ImageTk.PhotoImage(pj1_img)
+    pj1_id = canvas.create_image(650, 590, anchor="center", image=pj1)
+
+    #personaje 2
+    pj2_img = Image.open("Frisk lateral.png") #importa imagen
+    pj2_img = pj2_img.resize((100, 100))
+    pj2 = ImageTk.PhotoImage(pj2_img)
+    pj2_id = canvas.create_image(370, 620, anchor="center", image=pj2)
+
+    direccion = 1
+    balanceo_dir = 1
+    
+    mover_fondo2() #inicia el movimiento del fondo
+    mover_escena2() #inicia el movimiento de la escena
+    
+def mover_fondo2():
+    global direccion
+    canvas.move(fondo_id, 0, direccion * 2) #mueve el fondo en la direccion actual
+    canvas.move(pj1_id, 0, direccion * -2)
+    canvas.move(pj2_id, 0, direccion * 5)
+    
+    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
+    
+    if y >= 0:
+        direccion = -1
+    elif y <= -8:
+        direccion = 1
+    elif x <= -690:
+        direccion = 0
+        
+    ventana.after(50, mover_fondo2) #llama a esta funcion cada 50 milisegundos
+
+def mover_escena2():
+    global direccion
+    canvas.move(fondo_id, -2, 0) #mueve el fondo en la direccion actual
+    canvas.move(pj1_id, -0.5, 0)
+    canvas.move(pj2_id, -0.5, 0)
+    
+    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
+    
+    if x >= -690:
+        ventana.after(20, mover_escena2) 
+    else:
+        canvas.move(fondo_id, 0, 0) #detiene el movimiento del fondo
+        canvas.move(pj1_id, 0, 0)
+        canvas.move(pj2_id, 0, 0)
+        ventana.after(2000, mover_personajes_escena1) #espera 2 segundos 
+        
+ 
+
+def mover_personajes_escena1():
+    global balanceo_dir
+    canvas.move(pj1_id, 0, balanceo_dir * 3) #mueve el personaje 1 en la direccion actual
+    canvas.move(pj2_id, 0, balanceo_dir * 3) #mueve el personaje 2 en la direccion actual
+    balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
+
+    canvas.move(pj2_id, 5, 0)
+    ventana.after(500, mover_personaje1_escena1)
+    
+    ventana.after(40, mover_personajes_escena1) #llama a esta funcion cada 50 milisegundos
+    
+def mover_personaje1_escena1():
+     canvas.move(pj1_id, 5, 0)
+     ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
+
+escena2() #inicia la segunda escena
 ventana.mainloop()
 
 
