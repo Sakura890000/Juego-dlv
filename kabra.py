@@ -1,6 +1,26 @@
 from PIL import Image, ImageTk
 import turtle as tr
 import random as rd
+import tkinter as tk
+
+#ventana para lanzar el dado
+ventana_dado = tk.Tk()
+ventana_dado.title("Lanzar Dado")
+ventana_dado.geometry("200x100")
+
+def lanzar_dado():
+    pasos = rd.randint(1, 6)
+    print(f"Turno de {turno_actual}: Sacó un {pasos}")
+    mover_jugador(pasos)
+
+
+label_dado = tk.Label(ventana_dado, text="Presiona ESPACIO para lanzar el dado")
+label_dado.pack(pady=20)
+boton_lanzar = tk.Button(ventana_dado, text="Lanzar Dado", command=lanzar_dado)  # El comando se asignará después
+boton_lanzar.pack()
+
+
+
 
 # Sprites
 perro = "perro.gif"
@@ -17,7 +37,7 @@ pantalla.register_shape(grass)
 
 # organizar pantalla
 pantalla.title("Tablero")
-pantalla.bgcolor("#90e79c")
+pantalla.bgcolor("#ffdab8")
 pantalla.setup(width=900, height=700)
 
 # variables
@@ -94,7 +114,7 @@ pantalla.onclick(registrar_clic)
 
 
 # --- CAPA DE TRAMPAS ---
-CANTIDAD_TRAMPAS = 15
+CANTIDAD_TRAMPAS = 10
 casillas_trampa = set()
 
 pintor_trampas = tr.Turtle()
@@ -143,10 +163,6 @@ posiciones = {
 
 turno_actual = "J1"  # Control de turnos
 
-def lanzar_dado():
-    pasos = rd.randint(1, 6)
-    print(f"Turno de {turno_actual}: Sacó un {pasos}")
-    mover_jugador(pasos)
 
 def mover_jugador(pasos):
     global turno_actual
@@ -178,10 +194,11 @@ def mover_jugador(pasos):
 
 # Configurar el teclado para jugar
 pantalla.listen()
-pantalla.onkey(lanzar_dado, "space")
+
 
 # Colocar jugadores en la salida al iniciar el juego
 mover_jugador(0)
 mover_jugador(0)
 
 pantalla.mainloop()
+ventana_dado.mainloop()
