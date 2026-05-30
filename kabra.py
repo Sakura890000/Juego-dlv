@@ -1,13 +1,21 @@
-from PIL import Image,ImageTk
+from PIL import Image, ImageTk
 import turtle as tr
 import random as rd
 
-# crear pantalla
-pantalla = tr.Screen()
+# Sprites
 perro = "perro.gif"
 girar = "girar.gif"
+grass = "grass.gif"
+
+# crear pantalla
+pantalla = tr.Screen()
+
+# Registrar sprites
 pantalla.register_shape(girar)
 pantalla.register_shape(perro)
+pantalla.register_shape(grass)
+
+# organizar pantalla
 pantalla.title("Tablero")
 pantalla.bgcolor("#90e79c")
 pantalla.setup(width=900, height=700)
@@ -15,7 +23,7 @@ pantalla.setup(width=900, height=700)
 # variables
 TableroSizeX = 10
 TableroSizeY = 10
-casillaSize = 45
+casillaSize = 64
 
 # Calcular límites exactos
 inicioX = -(TableroSizeX * casillaSize) // 2
@@ -29,77 +37,63 @@ dibujante.hideturtle()
 dibujante.speed(0)
 dibujante.color("black")
 
-# Líneas verticales (se suma +1 a finX para que range incluya la última línea)
+# Líneas verticales
 for x in range(inicioX, finX + 1, casillaSize):
     dibujante.penup()
     dibujante.goto(x, inicioY)
     dibujante.pendown()
-    dibujante.goto(x, finY)  # Conecta exactamente con el tope superior
+    dibujante.goto(x, finY)
 
-# Líneas horizontales (se suma +1 a finY para que range incluya la última línea)
+# Líneas horizontales
 for y in range(inicioY, finY + 1, casillaSize):
     dibujante.penup()
     dibujante.goto(inicioX, y)
     dibujante.pendown()
-    dibujante.goto(finX, y)  # Conecta exactamente con el tope derecho
+    dibujante.goto(finX, y)
 
-# Tortuga para pintar
-pintor = tr.Turtle()
-pintor.hideturtle()
-pintor.speed(0)
-pintor.color("black", "#1d4ed8")  # Relleno azul
+
+# Creamos un diccionario de tortugas invisibles que actuarán como "baldosas" de pasto
+baldosas_pasto = {
+}
+
+for i in range(TableroSizeX):
+    for j in range(TableroSizeY):
+        coordenada_casilla = (i, j)
+        nueva_baldosa = tr.Turtle()
+        nueva_baldosa.hideturtle()
+        nueva_baldosa.speed(0)
+        nueva_baldosa.penup()
+        nueva_baldosa.shape(grass)  # Le asignamos la imagen del pasto
+        nueva_baldosa.goto(inicioX + (i * casillaSize) + (casillaSize // 2), inicioY + (j * casillaSize) + (casillaSize // 2))
+        nueva_baldosa.showturtle()  # Mostramos la tortuga para que se vea el pasto
+        baldosas_pasto[coordenada_casilla] = nueva_baldosa
 
 def registrar_clic(x, y):
-    # Verificar límites del tablero
     if inicioX <= x <= finX and inicioY <= y <= finY:
-        # Calcular esquina inferior izquierda de la casilla
-        casilla_x = ((x - inicioX) // casillaSize) * casillaSize + inicioX
-        casilla_y = ((y - inicioY) // casillaSize) * casillaSize + inicioY
+        # Calcular los índices lógicos de la casilla (columna y fila)
+        col = int((x - inicioX) // casillaSize)
+        fila = int((y - inicioY) // casillaSize)
+        coordenada_casilla = (col, fila)
         
-        # Dibujar relleno azul
-        pintor.penup()
-        pintor.goto(casilla_x, casilla_y)
-        pintor.pendown()
-        pintor.begin_fill()
-        for _ in range(4):
-            pintor.forward(casillaSize)
-            pintor.left(90)
-        pintor.end_fill()
+        # Centro de la casilla en píxeles
+        casilla_x = inicioX + (col * casillaSize) + (casillaSize // 2)
+        casilla_y = inicioY + (fila * casillaSize) + (casillaSize // 2)
+        
+        # Si no existe una tortuga de pasto en esta casilla, la creamos
+        if coordenada_casilla not in baldosas_pasto:
+            nuevo_pasto = tr.Turtle()
+            nuevo_pasto.speed(0)
+            nuevo_pasto.penup()
+            nuevo_pasto.goto(casilla_x, casilla_y)
+            nuevo_pasto.shape(grass)  # Le asignamos la imagen del pasto
+            # Guardamos la referencia
+            baldosas_pasto[coordenada_casilla] = nuevo_pasto
 
 # Activar detección de clics
 pantalla.onclick(registrar_clic)
 
-# players config
-jugador1 = tr.Turtle()
-jugador1.shape(girar)
-jugador1.color("red")
-jugador1.penup()
-jugador1.speed(3)
 
-jugador2 = tr.Turtle()
-jugador2.shape(perro)
-jugador2.color("yellow")
-jugador2.penup()
-jugador2.speed(3)
-
-# Diccionario para controlar las coordenadas lógicas (columna, fila) de cada jugador
-# Empiezan en la casilla inferior izquierda (0, 0)
-posiciones = {
-    "J1": {"x": 0, "y": 0, "turtle": jugador1},
-    "J2": {"x": 0, "y": 0, "turtle": jugador2}
-}
-
-turno_actual = "J1"  # Control de turnos
-
-
-
-# Funciones para simular dados (ejemplo rápido presionando teclas)
-def lanzar_dado():
-    pasos = rd.randint(1, 6)
-    print(f"Turno de {turno_actual}: Sacó un {pasos}")
-    mover_jugador(pasos)
-
-# 1. Configuración de casillas trampa (Se mantiene igual)
+# --- CAPA DE TRAMPAS ---
 CANTIDAD_TRAMPAS = 15
 casillas_trampa = set()
 
@@ -128,51 +122,66 @@ while len(casillas_trampa) < CANTIDAD_TRAMPAS:
         pintor_trampas.end_fill()
 
 
-# 2. Función de movimiento modificada para regresar al principio (0,0)
+# --- CAPA SUPERIOR: CONFIGURACIÓN DE JUGADORES ---
+jugador1 = tr.Turtle()
+jugador1.shape(girar)
+jugador1.color("red")
+jugador1.penup()
+jugador1.speed(3)
+
+jugador2 = tr.Turtle()
+jugador2.shape(perro)
+jugador2.color("yellow")
+jugador2.penup()
+jugador2.speed(3)
+
+# Diccionario de posiciones
+posiciones = {
+    "J1": {"x": 0, "y": 0, "turtle": jugador1},
+    "J2": {"x": 0, "y": 0, "turtle": jugador2}
+}
+
+turno_actual = "J1"  # Control de turnos
+
+def lanzar_dado():
+    pasos = rd.randint(1, 6)
+    print(f"Turno de {turno_actual}: Sacó un {pasos}")
+    mover_jugador(pasos)
+
 def mover_jugador(pasos):
     global turno_actual
     jugador = posiciones[turno_actual]
     
-    # Calcular nueva posición lineal
     posicion_lineal_actual = jugador["y"] * TableroSizeX + jugador["x"]
     nueva_posicion_lineal = posicion_lineal_actual + pasos
     
-    # Controlar límites del tablero
     max_casillas = TableroSizeX * TableroSizeY
     if nueva_posicion_lineal >= max_casillas:
         nueva_posicion_lineal = max_casillas - 1
     if nueva_posicion_lineal < 0:
         nueva_posicion_lineal = 0
         
-    # Convertir a coordenadas (x, y)
     jugador["x"] = nueva_posicion_lineal % TableroSizeX
     jugador["y"] = nueva_posicion_lineal // TableroSizeX
 
-    # ---- DETECCIÓN DE TRAMPAS: REGRESA AL PRINCIPIO ----
     if (jugador["x"], jugador["y"]) in casillas_trampa:
         print(f"¡¡MALA SUERTE!! {turno_actual} cayó en una trampa. Regresa al inicio.")
         jugador["x"] = 0
         jugador["y"] = 0
-    # ----------------------------------------------------
 
-    # Calcular coordenadas en pixeles (centrado en la casilla)
     pixel_x = inicioX + (jugador["x"] * casillaSize) + (casillaSize // 2)
     pixel_y = inicioY + (jugador["y"] * casillaSize) + (casillaSize // 2)
     
-    # Mover físicamente la tortuga
     jugador["turtle"].goto(pixel_x, pixel_y)
     
-    # Cambiar el turno al siguiente jugador
     turno_actual = "J2" if turno_actual == "J1" else "J1"
-
 
 # Configurar el teclado para jugar
 pantalla.listen()
-pantalla.onkey(lanzar_dado, "space")  # Presiona ESPACIO para avanzar
+pantalla.onkey(lanzar_dado, "space")
 
 # Colocar jugadores en la salida al iniciar el juego
 mover_jugador(0)
 mover_jugador(0)
-
 
 pantalla.mainloop()
