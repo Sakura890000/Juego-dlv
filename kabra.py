@@ -78,11 +78,13 @@ girar = "girar.gif"
 box = "box.gif"
 soul = "soul.gif"
 portal = "portal.gif"
+luck= "luck.gif"
 
 pantalla = tr.Screen()
 pantalla.tracer(0)  # Carga instantánea
 
 # Registrar sprites
+pantalla.register_shape(luck)
 pantalla.register_shape(portal)
 pantalla.register_shape("1.gif")
 pantalla.register_shape("2.gif")
@@ -172,6 +174,20 @@ for i in range(TableroSizeX):
         nueva_baldosa.showturtle()
         baldosas_pasto[coordenada_casilla] = nueva_baldosa
 
+# --- ESCRITOR DE ALERTAS EN PANTALLA ---
+escritor_alertas = tr.Turtle()
+escritor_alertas.hideturtle()
+escritor_alertas.penup()
+escritor_alertas.color("orange") # Color llamativo para la trampa
+escritor_alertas.goto(0, 50)
+
+alertas_lucky = tr.Turtle()
+alertas_lucky.hideturtle()
+alertas_lucky.penup()
+alertas_lucky.color("yellow") # Color llamativo para el lucky
+alertas_lucky.goto(0, 20)
+
+
 
 # --- CAPA DE JUEGOS ---
 CANTIDAD_MINIJUEGOS = 12 
@@ -198,7 +214,7 @@ while len(casillas_juego) < CANTIDAD_MINIJUEGOS and opciones_juego:
         pintor_juego.stamp()
 
 # --- CAPA DE TRAMPAS (SOUL) ---
-CANTIDAD_TRAMPAS = 64
+CANTIDAD_TRAMPAS = 14
 casillas_trampa = set()
 
 pintor_trampa = tr.Turtle()
@@ -222,23 +238,45 @@ while len(casillas_trampa) < CANTIDAD_TRAMPAS and opciones_trampa:
         pintor_trampa.goto(px, py)
         pintor_trampa.stamp()
 
-# --- DISPLAY VISUAL DEL DADO (MODIFICADO) ---
+# --- CAPA DE Lucky ---
+CANTIDAD_LUCKYS = 14
+casillas_lucky = set()
+
+pintor_lucky = tr.Turtle()
+pintor_lucky.hideturtle()
+pintor_lucky.speed(0)
+pintor_lucky.shape(luck)
+
+# Filtrar opciones para no pisar las casillas iniciales, finales ni los minijuegos actuales
+opciones_lucky = [c for c in CAMINO_CASILLAS[1:-1] if c not in casillas_juego]
+
+while len(casillas_lucky) < CANTIDAD_LUCKYS and opciones_lucky:
+    candidata = rd.choice(opciones_lucky)
+    if candidata not in casillas_lucky:
+        casillas_lucky.add(candidata)
+        
+        tx, ty = candidata
+        px = inicioX + (tx * casillaSize) + (casillaSize // 2)
+        py = inicioY + (ty * casillaSize) + (casillaSize // 2)
+        
+        pintor_lucky.penup()
+        pintor_lucky.goto(px, py)
+        pintor_lucky.stamp()
+
+# --- DISPLAY VISUAL DEL DADO ---
 display_dado = tr.Turtle()
 display_dado.penup()
-# CORRECCIÓN: Ubicado exactamente en el centro matemático de la pantalla (0, 0)
 display_dado.goto(0, 0) 
 display_dado.shape("1.gif")
 
 # --- CONFIGURACIÓN DE JUGADORES ---
 jugador1 = tr.Turtle()
 jugador1.shape(girar)
-jugador1.color("red")
 jugador1.penup()
 jugador1.speed(3)
 
 jugador2 = tr.Turtle()
 jugador2.shape(perro)
-jugador2.color("yellow")
 jugador2.penup()
 jugador2.speed(3)
 
@@ -266,13 +304,38 @@ def mover_jugador(pasos):
     coordenada_logica = CAMINO_CASILLAS[jugador["casilla_actual"]]
 
     if pasos > 0 and coordenada_logica in casillas_juego:
+        escritor_alertas.write(f"¡{turno_actual} CAIÓ EN UN MINIJUEGO!", align="center", font=("Arial", 24, "bold"))
+        ventana_dado.after(2000, escritor_alertas.clear)
         print(f"{turno_actual} cayó en un minijuego. ¡A jugar!.")
 
 # NUEVO: Evaluar si el jugador cayó en una casilla trampa soul
     if pasos > 0 and coordenada_logica in casillas_trampa:
+        escritor_alertas.write(f"¡{turno_actual} CAIÓ EN UN SOUL!", align="center", font=("Arial", 24, "bold"))
+        ventana_dado.after(2000, escritor_alertas.clear)
         print(f"¡OH NO! {turno_actual} cayó en un Soul. ¡Perdiste un turno!")
         label_dado.config(text=f"¡{turno_actual} cayó en Soul!\nPerdiste un turno")
         jugador["pierde_turno"] = True
+        # NUEVO: Escribe el texto gigante en el centro de la pantalla de Turtle
+        escritor_alertas.write(f"¡{turno_actual} PERDIÓ UN TURNO!", align="center", font=("Arial", 24, "bold"))
+        ventana_dado.after(2000, escritor_alertas.clear)
+
+    if pasos > 0 and coordenada_logica in casillas_lucky:
+        escritor_alertas.write(f"¡{turno_actual} ENCONTRÓ UN LUCKY!", align="center", font=("Arial", 24, "bold"))
+        ventana_dado.after(2000, escritor_alertas.clear)
+        print(f"¡UY! {turno_actual} encontró un Lucky. ¡Avanza o retrocede 2 casillas extra!")
+        label_dado.config(text=f"¡{turno_actual} encontró un Lucky!\nAvanza o retrocede 2 casillas extra")
+        opcion = rd.choice(["avanzar", "retroceder"])
+        if opcion == "avanzar":
+            jugador["casilla_actual"] += 2
+            alertas_lucky.write(f"¡{turno_actual} eligió avanzar!", align="center", font=("Arial", 24, "bold"))
+            ventana_dado.after(2000, alertas_lucky.clear)
+        else:
+            jugador["casilla_actual"] -= 2
+            alertas_lucky.write(f"¡{turno_actual} eligió retroceder!", align="center", font=("Arial", 24, "bold"))
+            ventana_dado.after(2000, alertas_lucky.clear)
+        if jugador["casilla_actual"] >= len(CAMINO_CASILLAS) - 1:
+            jugador["casilla_actual"] = len(CAMINO_CASILLAS) - 1
+            print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
 
     pixel_x = inicioX + (coordenada_logica[0] * casillaSize) + (casillaSize // 2)
     pixel_y = inicioY + (coordenada_logica[1] * casillaSize) + (casillaSize // 2)
@@ -286,6 +349,67 @@ def mover_jugador(pasos):
     boton_lanzar.config(state="normal")
 
 pantalla.listen()
+
+def gta():
+    screen = tr.Screen()
+    screen.setup(width=800, height=600)
+    screen.bgcolor("#333333") # Fondo gris como el asfalto de la ciudad
+    screen.title("Mini GTA 2D - Concepto")
+    gato="girar.gif"
+    screen.register_shape(gato)
+
+
+    # Crear el auto del jugador
+    jugador = tr.Turtle()
+    jugador.shape(gato) # Representa el auto
+    jugador.color("#ff007f") # Auto rosa neón
+    jugador.shapesize(1,1) # Forma alargada de auto
+    jugador.penup()
+    jugador.speed(0)
+
+    # Variables de física simple
+    velocidad = 0
+    max_velocidad = 6
+
+    # Funciones de control del vehículo
+    def acelerar():
+        global velocidad
+        if velocidad < max_velocidad:
+            velocidad += 1
+
+    def frenar():
+        global velocidad
+        if velocidad > -2: # Marcha atrás
+            velocidad -= 1
+
+    def girar_izquierda():
+        if velocidad != 0:
+            jugador.left(15)
+
+    def girar_derecha():
+        if velocidad != 0:
+            jugador.right(15)
+
+    # Conectar el teclado con el juego
+    screen.listen()
+    screen.onkeypress(acelerar, "Up")
+    screen.onkeypress(frenar, "Down")
+    screen.onkeypress(girar_izquierda, "Left")
+    screen.onkeypress(girar_derecha, "Right")
+
+    # Bucle principal del juego
+    while True:
+        # Mover el auto hacia adelante según su velocidad actual
+        jugador.forward(velocidad)
+        
+        # Sistema básico de fricción para que se detenga solo si no aceleras
+        if velocidad > 0:
+            velocidad -= 0.02
+        elif velocidad < 0:
+            velocidad += 0.02
+            
+        screen.update()
+
 
 def iniciar_juego():
     juego=rd.randint(1,8)
@@ -315,7 +439,7 @@ mover_jugador(0)
 turno_actual = "J1"
 
 pantalla.update()
-
+gta()  # Inicia el mini GTA en una ventana aparte
 pantalla.mainloop()
 ventana_dado.mainloop()
 
