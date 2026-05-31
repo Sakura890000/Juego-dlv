@@ -3,6 +3,8 @@ import turtle as tr
 import random as rd
 import tkinter as tk
 import time  # Importamos time para manejar pausas breves
+import winsound as ws
+import os
 
 P1 = 0
 P2 = 0
@@ -15,6 +17,24 @@ ventana_dado.title("Lanzar Dado")
 ventana_dado.geometry("200x200")
 
 def lanzar_dado():
+    global turno_actual
+
+    # NUEVO: Verificar si el jugador actual tiene el turno perdido
+    if posiciones[turno_actual]["pierde_turno"]:
+        print(f"{turno_actual} salta su turno por caer en Soul.")
+        label_dado.config(text=f"{turno_actual} salta su turno...")
+        posiciones[turno_actual]["pierde_turno"] = False # Se limpia la penalización
+        turno_actual = "J2" if turno_actual == "J1" else "J1" # Pasa el turno al otro
+        return # Cancela el resto del lanzamiento
+        
+    # Deshabilita el botón inmediatamente para evitar spam de clics
+    boton_lanzar.config(state="disabled")
+        # Encuentra la ruta exacta de la carpeta actual del script
+    ruta_sonido = os.path.join(os.path.dirname(__file__), "Voicy_awdasd.wav")
+    
+    # Reproduce el sonido correctamente usando ambas banderas unidas por el operador '|'
+    ws.PlaySound(ruta_sonido, ws.SND_FILENAME | ws.SND_ASYNC)
+
     # Deshabilita el botón inmediatamente para evitar spam de clics
     boton_lanzar.config(state="disabled")
     
@@ -57,11 +77,13 @@ perro = "perro.gif"
 girar = "girar.gif"
 box = "box.gif"
 soul = "soul.gif"
+portal = "portal.gif"
 
 pantalla = tr.Screen()
 pantalla.tracer(0)  # Carga instantánea
 
 # Registrar sprites
+pantalla.register_shape(portal)
 pantalla.register_shape("1.gif")
 pantalla.register_shape("2.gif")
 pantalla.register_shape("3.gif")
@@ -158,7 +180,7 @@ casillas_juego = set()
 pintor_juego = tr.Turtle()
 pintor_juego.hideturtle()
 pintor_juego.speed(0)
-pintor_juego.shape(soul)
+pintor_juego.shape(portal)
 
 opciones_juego = CAMINO_CASILLAS[1:-1]
 
@@ -174,6 +196,31 @@ while len(casillas_juego) < CANTIDAD_MINIJUEGOS and opciones_juego:
         pintor_juego.penup()
         pintor_juego.goto(px, py)
         pintor_juego.stamp()
+
+# --- CAPA DE TRAMPAS (SOUL) ---
+CANTIDAD_TRAMPAS = 64
+casillas_trampa = set()
+
+pintor_trampa = tr.Turtle()
+pintor_trampa.hideturtle()
+pintor_trampa.speed(0)
+pintor_trampa.shape(soul)
+
+# Filtrar opciones para no pisar las casillas iniciales, finales ni los minijuegos actuales
+opciones_trampa = [c for c in CAMINO_CASILLAS[1:-1] if c not in casillas_juego]
+
+while len(casillas_trampa) < CANTIDAD_TRAMPAS and opciones_trampa:
+    candidata = rd.choice(opciones_trampa)
+    if candidata not in casillas_trampa:
+        casillas_trampa.add(candidata)
+        
+        tx, ty = candidata
+        px = inicioX + (tx * casillaSize) + (casillaSize // 2)
+        py = inicioY + (ty * casillaSize) + (casillaSize // 2)
+        
+        pintor_trampa.penup()
+        pintor_trampa.goto(px, py)
+        pintor_trampa.stamp()
 
 # --- DISPLAY VISUAL DEL DADO (MODIFICADO) ---
 display_dado = tr.Turtle()
@@ -196,8 +243,8 @@ jugador2.penup()
 jugador2.speed(3)
 
 posiciones = {
-    "J1": {"casilla_actual": 0, "turtle": jugador1},
-    "J2": {"casilla_actual": 0, "turtle": jugador2}
+    "J1": {"casilla_actual": 0, "turtle": jugador1, "pierde_turno": False},
+    "J2": {"casilla_actual": 0, "turtle": jugador2, "pierde_turno": False}
 }
 
 turno_actual = "J1"
@@ -220,8 +267,12 @@ def mover_jugador(pasos):
 
     if pasos > 0 and coordenada_logica in casillas_juego:
         print(f"{turno_actual} cayó en un minijuego. ¡A jugar!.")
-        jugador["casilla_actual"] = 0
-        coordenada_logica = CAMINO_CASILLAS[0]
+
+# NUEVO: Evaluar si el jugador cayó en una casilla trampa soul
+    if pasos > 0 and coordenada_logica in casillas_trampa:
+        print(f"¡OH NO! {turno_actual} cayó en un Soul. ¡Perdiste un turno!")
+        label_dado.config(text=f"¡{turno_actual} cayó en Soul!\nPerdiste un turno")
+        jugador["pierde_turno"] = True
 
     pixel_x = inicioX + (coordenada_logica[0] * casillaSize) + (casillaSize // 2)
     pixel_y = inicioY + (coordenada_logica[1] * casillaSize) + (casillaSize // 2)
