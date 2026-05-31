@@ -2,21 +2,54 @@ from PIL import Image, ImageTk
 import turtle as tr
 import random as rd
 import tkinter as tk
+import time  # Importamos time para manejar pausas breves
+
+P1 = 0
+P2 = 0
+
 
 # --- VENTANA DADO (Tkinter) ---
+
 ventana_dado = tk.Tk()
 ventana_dado.title("Lanzar Dado")
-ventana_dado.geometry("200x100")
+ventana_dado.geometry("200x200")
 
 def lanzar_dado():
+    # Deshabilita el botón inmediatamente para evitar spam de clics
+    boton_lanzar.config(state="disabled")
+    
+    # --- ANIMACIÓN DEL DADO (Efecto Ruleta) ---
+    # Cambia rápidamente de cara 6 veces para simular que está girando
+    for _ in range(6):
+        cara_aleatoria = rd.randint(1, 6)
+        display_dado.shape(f"{cara_aleatoria}.gif")
+        pantalla.update()
+        time.sleep(0.1) # Pausa de 100 milisegundos entre giros
+    
+    # Resultado definitivo
     pasos = rd.randint(1, 6)
     print(f"Turno de {turno_actual}: Sacó un {pasos}")
+    label_dado.config(text=f"¡{turno_actual} sacó un {pasos}!")
+    
+    # Muestra el resultado final en el display
+    display_dado.shape(f"{pasos}.gif")
+    pantalla.update()
+    
+    # Breve pausa con el número final antes de que el jugador empiece a moverse
+    time.sleep(0.4)
+    
+    # Mueve al jugador
     mover_jugador(pasos)
 
-label_dado = tk.Label(ventana_dado, text="Presiona ESPACIO para lanzar el dado")
+label_dado = tk.Label(ventana_dado, text="Presiona el botón para lanzar el dado")
 label_dado.pack(pady=20)
 boton_lanzar = tk.Button(ventana_dado, text="Lanzar Dado", command=lanzar_dado)
 boton_lanzar.pack()
+
+puntos_label1 = tk.Label(ventana_dado, text=f"Puntos J1: {P1}")
+puntos_label1.pack(side="left", padx=10)
+puntos_label2 = tk.Label(ventana_dado, text=f"Puntos J2: {P2}")
+puntos_label2.pack(side="right", padx=10)
 
 # --- CONFIGURACIÓN PANTALLA (Turtle) ---
 sculk = "sculk.gif"
@@ -29,6 +62,12 @@ pantalla = tr.Screen()
 pantalla.tracer(0)  # Carga instantánea
 
 # Registrar sprites
+pantalla.register_shape("1.gif")
+pantalla.register_shape("2.gif")
+pantalla.register_shape("3.gif")
+pantalla.register_shape("4.gif")
+pantalla.register_shape("5.gif")
+pantalla.register_shape("6.gif")
 pantalla.register_shape(soul)
 pantalla.register_shape(sculk)
 pantalla.register_shape(girar)
@@ -50,7 +89,6 @@ inicioY = -(TableroSizeY * casillaSize) // 2
 finY = (TableroSizeY * casillaSize) // 2
 
 # --- CAMINITO DISTRIBUIDO DE EXACTAMENTE 120 CASILLAS ---
-# Aprovecha el perímetro y serpentea orgánicamente hacia el interior.
 CAMINO_CASILLAS = [
     (0, 0), (1,0), (2, 0), (2, 1), (2, 2), (3,2), (4,2),
     (5,2), (6,2), (7,2), (8,2), (8,1),(9,1), (10,1), 
@@ -132,7 +170,7 @@ def registrar_clic(x, y):
 
 pantalla.onclick(registrar_clic)
 
-# --- CAPA DE Juegos ---
+# --- CAPA DE JUEGOS ---
 CANTIDAD_MINIJUEGOS = 12 
 casillas_juego = set()
 
@@ -149,17 +187,19 @@ while len(casillas_juego) < CANTIDAD_MINIJUEGOS and opciones_juego:
         casillas_juego.add(candidata)
         
         tx, ty = candidata
-        px = inicioX + (tx * casillaSize)
-        py = inicioY + (ty * casillaSize)
+        px = inicioX + (tx * casillaSize) + (casillaSize // 2)
+        py = inicioY + (ty * casillaSize) + (casillaSize // 2)
         
         pintor_juego.penup()
         pintor_juego.goto(px, py)
-        pintor_juego.pendown()
         pintor_juego.stamp()
-        for _ in range(4):
-            pintor_juego.forward(casillaSize)
-            pintor_juego.left(90)
-        pintor_juego.end_fill()
+
+# --- DISPLAY VISUAL DEL DADO (MODIFICADO) ---
+display_dado = tr.Turtle()
+display_dado.penup()
+# CORRECCIÓN: Ubicado exactamente en el centro matemático de la pantalla (0, 0)
+display_dado.goto(0, 0) 
+display_dado.shape("1.gif")
 
 # --- CONFIGURACIÓN DE JUGADORES ---
 jugador1 = tr.Turtle()
@@ -185,18 +225,20 @@ def mover_jugador(pasos):
     global turno_actual
     jugador = posiciones[turno_actual]
     
-    nueva_casilla = jugador["casilla_actual"] + pasos
-    max_casillas = len(CAMINO_CASILLAS)
-    
-    if nueva_casilla >= max_casillas - 1:
-        nueva_casilla = max_casillas - 1
-        print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
+    if pasos > 0:
+        nueva_casilla = jugador["casilla_actual"] + pasos
+        max_casillas = len(CAMINO_CASILLAS)
         
-    jugador["casilla_actual"] = nueva_casilla
-    coordenada_logica = CAMINO_CASILLAS[nueva_casilla]
+        if nueva_casilla >= max_casillas - 1:
+            nueva_casilla = max_casillas - 1
+            print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
+            
+        jugador["casilla_actual"] = nueva_casilla
+    
+    coordenada_logica = CAMINO_CASILLAS[jugador["casilla_actual"]]
 
-    if coordenada_logica in casillas_juego:
-        print(f"¡¡MALA SUERTE!! {turno_actual} cayó en una juego. Regresa al inicio.")
+    if pasos > 0 and coordenada_logica in casillas_juego:
+        print(f"{turno_actual} cayó en un minijuego. ¡A jugar!.")
         jugador["casilla_actual"] = 0
         coordenada_logica = CAMINO_CASILLAS[0]
 
@@ -205,16 +247,44 @@ def mover_jugador(pasos):
     
     jugador["turtle"].goto(pixel_x, pixel_y)
     
-    turno_actual = "J2" if turno_actual == "J1" else "J1"
+    if pasos > 0:
+        turno_actual = "J2" if turno_actual == "J1" else "J1"
+        
     pantalla.update()
+    boton_lanzar.config(state="normal")
 
 pantalla.listen()
 
+def iniciar_juego():
+    juego=rd.randint(1,8)
+    match juego:
+        case 1:
+            print("¡Minijuego 1: Adivina el número!")
+        case 2:
+            print("¡Minijuego 2: Carrera de tortugas!")
+        case 3:
+            print("¡Minijuego 3: Memoria visual!")
+        case 4:
+            print("¡Minijuego 4: Piedra, papel o tijera!")
+        case 5:
+            print("¡Minijuego 5: Laberinto!")
+        case 6:
+            print("¡Minijuego 6: Rompecabezas!")
+        case 7:
+            print("¡Minijuego 7: Trivia rápida!")
+        case 8:
+            print("¡Minijuego 8: Carrera de dados!")
+
+
 # Inicializar jugadores en el bloque START (casilla 0)
 mover_jugador(0)
+turno_actual = "J2"
 mover_jugador(0)
+turno_actual = "J1"
 
-pantalla.update()  # Renderizado rápido
+pantalla.update()
 
 pantalla.mainloop()
 ventana_dado.mainloop()
+
+
