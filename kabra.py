@@ -351,12 +351,12 @@ def mover_jugador(pasos):
 pantalla.listen()
 
 def gta():
-    screen = tr.Screen()
-    screen.setup(width=800, height=600)
-    screen.bgcolor("#333333") # Fondo gris como el asfalto de la ciudad
-    screen.title("Mini GTA 2D - Concepto")
+    screen1 = tr.Screen()
+    screen1.setup(width=800, height=600)
+    screen1.bgcolor("#333333") # Fondo gris como el asfalto de la ciudad
+    screen1.title("Mini GTA 2D - Concepto")
     gato="girar.gif"
-    screen.register_shape(gato)
+    screen1.register_shape(gato)
 
 
     # Crear el auto del jugador
@@ -391,11 +391,11 @@ def gta():
             jugador.right(15)
 
     # Conectar el teclado con el juego
-    screen.listen()
-    screen.onkeypress(acelerar, "Up")
-    screen.onkeypress(frenar, "Down")
-    screen.onkeypress(girar_izquierda, "Left")
-    screen.onkeypress(girar_derecha, "Right")
+    screen1.listen()
+    screen1.onkeypress(acelerar, "Up")
+    screen1.onkeypress(frenar, "Down")
+    screen1.onkeypress(girar_izquierda, "Left")
+    screen1.onkeypress(girar_derecha, "Right")
 
     # Bucle principal del juego
     while True:
@@ -408,7 +408,8 @@ def gta():
         elif velocidad < 0:
             velocidad += 0.02
             
-        screen.update()
+        screen1.update()
+    screen1.mainloop()
 
 
 def iniciar_juego():
