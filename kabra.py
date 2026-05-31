@@ -55,7 +55,7 @@ puntos_label2.pack(side="right", padx=10)
 sculk = "sculk.gif"
 perro = "perro.gif"
 girar = "girar.gif"
-grass = "grass.gif"
+box = "box.gif"
 soul = "soul.gif"
 
 pantalla = tr.Screen()
@@ -72,7 +72,7 @@ pantalla.register_shape(soul)
 pantalla.register_shape(sculk)
 pantalla.register_shape(girar)
 pantalla.register_shape(perro)
-pantalla.register_shape(grass)
+pantalla.register_shape(box)
 
 pantalla.title("Tablero")
 pantalla.bgcolor("#142750")
@@ -142,7 +142,7 @@ for i in range(TableroSizeX):
         nueva_baldosa.penup()
         
         if coordenada_casilla in CAMINO_CASILLAS:
-            nueva_baldosa.shape(grass)
+            nueva_baldosa.shape(box)
         else:
             nueva_baldosa.shape(sculk)
             
@@ -150,25 +150,6 @@ for i in range(TableroSizeX):
         nueva_baldosa.showturtle()
         baldosas_pasto[coordenada_casilla] = nueva_baldosa
 
-def registrar_clic(x, y):
-    if inicioX <= x <= finX and inicioY <= y <= finY:
-        col = int((x - inicioX) // casillaSize)
-        fila = int((y - inicioY) // casillaSize)
-        coordenada_casilla = (col, fila)
-        
-        casilla_x = inicioX + (col * casillaSize) + (casillaSize // 2)
-        casilla_y = inicioY + (fila * casillaSize) + (casillaSize // 2)
-        
-        if coordenada_casilla not in baldosas_pasto:
-            nuevo_pasto = tr.Turtle()
-            nuevo_pasto.speed(0)
-            nuevo_pasto.penup()
-            nuevo_pasto.goto(casilla_x, casilla_y)
-            nuevo_pasto.shape(grass)
-            baldosas_pasto[coordenada_casilla] = nuevo_pasto
-            pantalla.update()
-
-pantalla.onclick(registrar_clic)
 
 # --- CAPA DE JUEGOS ---
 CANTIDAD_MINIJUEGOS = 12 
