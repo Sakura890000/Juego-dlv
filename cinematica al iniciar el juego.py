@@ -4,6 +4,8 @@ import tkinter as tk
 import turtle as tr
 
 from PIL import Image, ImageTk
+from PIL import ImageOps 
+
 
 ventana = tk.Tk()
 canvas = tk.Canvas(ventana, width=700, height=690)
@@ -20,10 +22,15 @@ pj1_id = None
 pj2_img = None
 pj2 = None
 pj2_id = None
-zoom_factor = 1.0
 
+#///deben reiniciarse por escena///
+zoom_factor = 1.0
 direccion = 1 #1 para bajar, -1 para subir, 0 para detener
 balanceo_dir = 1
+espejo = False
+
+#///variable unica de escena 3///
+zoom_factor_pj2_escena3 = 1.0
 
 def escena1():
      global fondo_img, fondo, fondo_id
@@ -88,13 +95,14 @@ def mover_escena1():
     canvas.move(pj2_id, -2, 0)
     x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
     
+    canvas.update() 
     if x >= -250:
           ventana.after(50, mover_escena1) 
     else:
         canvas.move(fondo_id, 0, 0) #detiene el movimiento del fondo
         canvas.move(pj1_id, 0, 0)
         canvas.move(pj2_id, 0, 0)
-
+   
         ventana.after(2000, mover_personajes_escena1) #espera 2 segundos 
         
  
@@ -104,7 +112,8 @@ def mover_personajes_escena1():
     canvas.move(pj1_id, 0, balanceo_dir * 3) #mueve el personaje 1 en la direccion actual
     canvas.move(pj2_id, 0, balanceo_dir * 3) #mueve el personaje 2 en la direccion actual
     balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
-
+    
+    canvas.update() #actualiza el canvas para mostrar el movimiento
     canvas.move(pj2_id, 5, 0)
     ventana.after(500, mover_personaje1_escena1)
     
@@ -201,7 +210,6 @@ def mover_personaje1_escena1():
      ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
 
-<<<<<<< HEAD
 def escena3 ():
     global fondo_img, fondo, fondo_id
     global pj1_img, pj1, pj1_id 
@@ -220,13 +228,13 @@ def escena3 ():
         pj1_img = Image.open("link.png") #importa imagen 
         pj1_img = pj1_img.resize((75, 85))
         pj1 = ImageTk.PhotoImage(pj1_img)
-        pj1_id = canvas.create_image(330, 545, anchor="center", image=pj1)
+        pj1_id = canvas.create_image(370, 550, anchor="center", image=pj1)
 
         #personaje 2
         pj2_img = Image.open("Frisk.png") #importa imagen
         pj2_img = pj2_img.resize((75, 85))
         pj2 = ImageTk.PhotoImage(pj2_img)
-        pj2_id = canvas.create_image(270, 540, anchor="center", image=pj2)
+        pj2_id = canvas.create_image(270, 545, anchor="center", image=pj2)
     
     #reinicio de variables por si algo
     direccion = 1
@@ -255,46 +263,149 @@ def zoom_fondo_escena3 ():
         
          ventana.after(60, zoom_fondo_escena3) #llama a esta funcion cada 50 milisegundos
     else:
-        ventana.after(2000, balanceo_personaje1_escena3, ) 
-        ventana.after(2531, balanceo_personaje2_escena3)
+        ventana.after(2000, lambda: balanceo_personaje1_escena3(pasos_restantes=100))
+        ventana.after(2531, lambda: balanceo_personaje2_escena3(pasos_restantes=100))
+
 
 #balanceo de personajes en escena 3
-def balanceo_personaje1_escena3():
+def balanceo_personaje1_escena3(pasos_restantes):
     global balanceo_dir
-    canvas.move(pj1_id, 0, balanceo_dir * 2) #mueve el personaje 1 en la direccion actual
-    balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
+    if pasos_restantes > 0:
+        canvas.move(pj1_id, 0, balanceo_dir * 2) #mueve el personaje 1 en la direccion actual
+        balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
+        ventana.after(150, lambda: balanceo_personaje1_escena3(pasos_restantes=pasos_restantes-1))
+        if pasos_restantes < 90:
+            mover_personaje1_escena3() #inicia el movimiento del personaje 1 despues de balancear
 
 
-    ventana.after(250, balanceo_personaje1_escena3)
-    ventana.after(2000,mover_personaje1_escena3)
-    
-    # ventana.after(40, balanceo_personajes_escena3) #llama a esta funcion cada 50 milisegundosded
-
-def balanceo_personaje2_escena3():
+def balanceo_personaje2_escena3(pasos_restantes):
     global balanceo_dir
-    canvas.move(pj2_id, 0, balanceo_dir * 2) #mueve el personaje 2 en la direccion actual
-    balanceo_dir *= 1 #cambia la direccion para el siguiente movimiento
+    if pasos_restantes > 0:
+        canvas.move(pj2_id, 0, balanceo_dir * 2) #mueve el personaje 2 en la direccion actual
+        balanceo_dir *= 1 #cambia la direccion para el siguiente movimiento
+        ventana.after(150, lambda: balanceo_personaje2_escena3(pasos_restantes=pasos_restantes-1))
+        if pasos_restantes < 90:
+            mover_personaje2_escena3() #inicia el movimiento del personaje 2 despues de balancear
 
-    ventana.after(250, balanceo_personaje2_escena3)
-    ventana.after(2200,mover_personaje2_escena3)
-    
 #movimiento de los persoajes en escena 3
 def mover_personaje1_escena3():
+    global pj1_img, pj1_id, zoom_factor
     for i in range(5): #mueve el personaje 1 hacia la derecha durante 50 iteraciones
         canvas.move(pj1_id, 1, 4)
-        fondo_img = fondo_img.resize((int(fondo_img.size[0] * 1.001), int(fondo_img.size[1] * 1.001))) #redimensiona la imagen de fondo
-        zoom_fondo = ImageTk.PhotoImage(fondo_img)
-        # ventana.after(200, mover_personaje1_escena3) #llama a esta funcion cada 50 milisegundos
+        #aumenta el tamaño del personaje 1 para simular acercamiento
+        zoom_factor += 0.025
         
-def mover_personaje2_escena3():
-    for i in range(7): #mueve el personaje 2 hacia la derecha durante 50 iteraciones
-        canvas.move(pj2_id, 1, 2)
-        # ventana.after(200, mover_personaje2_escena3) #llama a esta funcion cada 50 milisegundos
+        w, h = pj1_img.size
+        pj1_img_zoom = pj1_img.resize((int(w * zoom_factor), int(h * zoom_factor)))
+        zoom_pj1 = ImageTk.PhotoImage(pj1_img_zoom)  
+        
+    
+        canvas.itemconfig(pj1_id, image=zoom_pj1) 
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        canvas.after(50) #espera 50 milisegundos antes de la siguiente iteracion
 
-escena3() #inicia la tercera escena
-=======
-escena1() #inicia la segunda escena
->>>>>>> 13ac0b427f6acdffdeaea4b68b8f6f8246554af7
+def mover_personaje2_escena3():
+    global pj2_img, pj2_id, zoom_factor_pj2_escena3
+    for i in range(7): #mueve el personaje 2 hacia la derecha durante 50 iteraciones
+        canvas.move(pj2_id, 1, 2.5)
+        #aumenta el tamaño del personaje 2 para simular acercamiento
+        zoom_factor_pj2_escena3 += 0.02
+        
+        w, h = pj2_img.size
+        pj2_img_zoom = pj2_img.resize((int(w * zoom_factor_pj2_escena3), int(h * zoom_factor_pj2_escena3)))
+        zoom_pj2 = ImageTk.PhotoImage(pj2_img_zoom)
+        
+        canvas.itemconfig(pj2_id, image=zoom_pj2)
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        canvas.after(30) #espera 50 milisegundos antes de la siguiente iteracion
+
+def escena4 ():
+    global fondo_img, fondo, fondo_id
+    global pj1_img, pj1, pj1_id 
+    global pj2_img, pj2, pj2_id
+    global direccion, balanceo_dir, zoom_factor
+    
+    canvas.delete("all") #limpia el canvas para la nueva escena
+    
+    # Cargar la imagen de fondo
+    fondo_img = Image.open("escenario 4 cueva interior.jpg")
+    fondo_img = fondo_img.resize((850, 700))
+    fondo = ImageTk.PhotoImage(fondo_img)
+    fondo_id = canvas.create_image(0, 0,anchor="nw", image=fondo)
+    
+    #personaje 1
+    pj1_img = Image.open("link lateral2.png") #importa imagen 
+    pj1_img = pj1_img.resize((90, 90))
+    pj1 = ImageTk.PhotoImage(pj1_img)
+    pj1_id = canvas.create_image(490, 640, anchor="center", image=pj1)
+    
+    #--- espejo de pj1 ---
+    pj1_img_espejo_escena4 = ImageOps.mirror(pj1_img) #personaje 1 para que mire hacia la derecha
+    pj1_normal_escena4 = ImageTk.PhotoImage(pj1_img) #personaje 1 normal
+    pj1_espejo_escena4 = ImageTk.PhotoImage(pj1_img_espejo_escena4) #personaje 1 espejo
+    
+    canvas.pj1_normal_escena4 = pj1_normal_escena4 #guarda la referencia para evitar que se elimine
+    canvas.pj1_espejo_escena4 = pj1_espejo_escena4 #guarda la referencia para evitar que se elimine
+
+    #personaje 2
+    pj2_img = Image.open("Frisk lateral left.png") #importa imagen
+    pj2_img = pj2_img.resize((55, 75))
+    pj2 = ImageTk.PhotoImage(pj2_img)
+    pj2_id = canvas.create_image(240, 560, anchor="center", image=pj2)
+    
+    direccion = 1.0
+    balanceo_dir =  1.0
+    zoom_factor = 1.0
+    mover_fondo4()
+    movimiento_pj1_escena4() #inicia el movimiento del personaje 1 en la escena 4
+    mover_pj2_escena4() #inicia el movimiento del personaje 2 en la escena 4
+
+    
+    
+def mover_fondo4():
+    global direccion
+    canvas.move(fondo_id, 0, direccion *2 ) #mueve el fondo en la direccion actual
+    canvas.move(pj1_id, 0, direccion * 2)
+    # canvas.move(pj2_id, 0, direccion * 2)
+    
+    #obtiene las coordenadas actuales del fondo
+    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
+    #cambiar la direccion si el fondo llega a cierto punto
+    if y >= 0: 
+        direccion = -1 
+    elif y <= -4: 
+        direccion = 1 
+    canvas.update() #actualiza el canvas para mostrar el movimiento
+    ventana.after(250, mover_fondo4) #llama a esta funcion cada 50 milisegundos
+    
+    
+
+def movimiento_pj1_escena4():
+    global espejo
+    if espejo:
+        canvas.itemconfig(pj1_id, image=canvas.pj1_normal_escena4) #cambia a la imagen normal
+    else:
+        canvas.itemconfig(pj1_id, image=canvas.pj1_espejo_escena4) #cambia a la imagen espejo
+    espejo = not espejo #cambia el estado del espejo para la siguiente iteracion
+    ventana.after(750, movimiento_pj1_escena4) #llama a esta funcion cada 50 milisegundos
+    
+    # canvas.move(pj1_id, 0, 2) #mueve el personaje 1 hacia abajo
+    # ventana.after(50, movimiento_pj1_escena4) #llama a esta funcion cada 50 milisegundos
+    
+def mover_pj2_escena4():
+    global balanceo_dir, direccion
+    canvas.move(pj2_id, 0, balanceo_dir * -2)
+    
+    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del 
+   
+    if y >= 0: 
+        balanceo_dir = -1 
+    elif y <= -4: 
+        balanceo_dir = 1 
+    canvas.update() #actualiza el canvas para mostrar el movimiento
+    ventana.after(250, mover_pj2_escena4) #llama a esta funcion cada 50 milisegundos
+
+escena4() #inicia la cuarta escena
 ventana.mainloop()
 
 
