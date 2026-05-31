@@ -86,7 +86,7 @@ def mover_fondo1():
     ventana.after(50, mover_fondo1) #llama a esta funcion cada 50 milisegundos
 
     
-
+##---ESCENA 1----##
 
 def mover_escena1():
     global direccion
@@ -124,7 +124,7 @@ def mover_personaje1_escena1():
      ventana.after(80, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
      
-# escena1() #inicia la primera escena
+## --- ESCENA 2----##
 
 def escena2():
     global fondo_img, fondo, fondo_id
@@ -209,6 +209,7 @@ def mover_personaje1_escena1():
      canvas.move(pj1_id, 5, 0)
      ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
      
+##---- ESCENA 3----##
 
 def escena3 ():
     global fondo_img, fondo, fondo_id
@@ -319,6 +320,8 @@ def mover_personaje2_escena3():
         canvas.update() #actualiza el canvas para mostrar el cambio de imagen
         canvas.after(30) #espera 50 milisegundos antes de la siguiente iteracion
 
+##---- ESCENA 4----##
+
 def escena4 ():
     global fondo_img, fondo, fondo_id
     global pj1_img, pj1, pj1_id 
@@ -404,8 +407,40 @@ def mover_pj2_escena4():
         balanceo_dir = 1 
     canvas.update() #actualiza el canvas para mostrar el movimiento
     ventana.after(250, mover_pj2_escena4) #llama a esta funcion cada 50 milisegundos
+    
+##---- ESCENA 5----##
 
-escena4() #inicia la cuarta escena
+def escena5():
+    global fondo_img, fondo, fondo_id
+    global pj1_img, pj1, pj1_id 
+    global pj2_img, pj2, pj2_id
+    global direccion, balanceo_dir
+    
+    canvas.delete("all") #limpia el canvas para la nueva escena
+    
+    # Cargar la imagen de fondo
+    fondo_img = Image.open("escenario 5 cueva pasillo.jpeg")
+    fondo_img = fondo_img.resize((700, 700))
+    fondo = ImageTk.PhotoImage(fondo_img)
+    fondo_id = canvas.create_image(0, 0,anchor="nw", image=fondo)
+    
+    #personaje 1
+    pj1_img = Image.open("link.png") #importa imagen 
+    pj1_img = pj1_img.resize((75, 85))
+    pj1 = ImageTk.PhotoImage(pj1_img)
+    pj1_id = canvas.create_image(370, 550, anchor="center", image=pj1)
+
+    #personaje 2
+    pj2_img = Image.open("Frisk.png") #importa imagen
+    pj2_img = pj2_img.resize((75, 85))
+    pj2 = ImageTk.PhotoImage(pj2_img)
+    pj2_id = canvas.create_image(270, 545, anchor="center", image=pj2)
+    
+
+
+escena5() #inicia la quinta escena
+
+
 ventana.mainloop()
 
 
