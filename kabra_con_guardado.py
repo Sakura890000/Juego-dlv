@@ -18,7 +18,7 @@ ventana_dado.title("🎲 Juego del Tablero 🎲")
 ventana_dado.geometry("400x300")
 
 def guardar_estado_actual():
-    """Guarda el estado actual del juego"""
+#Guarda el estado actual del juego
     guardar_partida(P1, P2, turno_actual, posiciones, casillas_juego, casillas_trampa, casillas_lucky)
     messagebox.showinfo("Guardado", "✓ Partida guardada correctamente")
 
@@ -140,13 +140,13 @@ info_label = tk.Label(ventana_dado, text=listar_partidas_guardadas(), font=("Ari
 info_label.pack(pady=5)
 
 # --- CONFIGURACIÓN PANTALLA (Turtle) ---
-sculk = "sculk.gif"
-perro = "perro.gif"
-girar = "girar.gif"
-box = "box.gif"
-soul = "soul.gif"
-portal = "portal.gif"
-luck = "luck.gif"
+sculk = "assets/sculk.gif"
+perro = "assets/perro.gif"
+girar = "assets/girar.gif"
+box = "assets/box.gif"
+soul = "assets/soul.gif"
+portal = "assets/portal.gif"
+luck = "assets/luck.gif"
 
 pantalla = tr.Screen()
 pantalla.tracer(0)
