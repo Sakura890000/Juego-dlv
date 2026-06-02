@@ -2,11 +2,12 @@ import turtle as tl
 import random as rd
 # listas listicas sahur
 ataques_posibles = ["right","left","up", "down"]
+estados_posibles = ["rojo","verde"]
 #tung tung tung variables
 shield_pos = "left"
 can_block = True
 shield_reset = 70
-velocidad_proyectiles = 4
+velocidad_proyectiles = 3
 
 ventana = tl.Screen()
 ventana.setup(1200,700)
@@ -24,6 +25,11 @@ ventana.register_shape("arrow down.gif")
 ventana.register_shape("arrow up.gif")
 ventana.register_shape("arrow left.gif")
 ventana.register_shape("arrow right.gif")
+#proyectiles verdes sprites
+ventana.register_shape("green arrow left.gif")
+ventana.register_shape("green arrow right.gif")
+ventana.register_shape("green arrow up.gif")
+ventana.register_shape("green arrow down.gif")
 
 #escudo sprites
 ventana.register_shape("shield_left.gif")
@@ -61,9 +67,13 @@ def restar_vida():
 def flecha_1():
     global vida
     global shield_pos
+    estado = rd.choice(estados_posibles)
     ubicacion = rd.choice(ataques_posibles)
     if ubicacion  == "right":
-        flecha1.shape("arrow left.gif")
+        if estado == "rojo":
+            flecha1.shape("arrow left.gif")
+        if estado == "verde":
+            flecha1.shape("green arrow left.gif")
         flecha1.goto(900,0)
         flecha1.speed(velocidad_proyectiles)
         flecha1.towards(alma_player)
@@ -72,7 +82,10 @@ def flecha_1():
         flecha1.fd(900)
 
     elif ubicacion  == "left":
-        flecha1.shape("arrow right.gif")
+        if estado == "rojo":
+            flecha1.shape("arrow right.gif")
+        if estado == "verde":
+            flecha1.shape("green arrow right.gif")
         flecha1.goto(-900,0)
         flecha1.speed(velocidad_proyectiles)
         flecha1.towards(alma_player)
@@ -81,7 +94,10 @@ def flecha_1():
         flecha1.fd(900)
 
     elif ubicacion  == "up":
-        flecha1.shape("arrow down.gif")
+        if estado == "rojo":
+            flecha1.shape("arrow down.gif")
+        if estado == "verde":
+            flecha1.shape("green arrow down.gif")
         flecha1.goto(0,650)
         flecha1.speed(velocidad_proyectiles - 1)
         flecha1.towards(alma_player)
@@ -90,7 +106,10 @@ def flecha_1():
         flecha1.fd(650)
 
     elif ubicacion  == "down":
-        flecha1.shape("arrow up.gif")
+        if estado == "rojo":
+            flecha1.shape("arrow up.gif")
+        if estado == "verde":
+            flecha1.shape("green arrow up.gif")
         flecha1.goto(0,-650)
         flecha1.speed(velocidad_proyectiles - 1)
         angulo = flecha1.towards(alma_player)
@@ -101,10 +120,15 @@ def flecha_1():
         flecha1.speed(0)
         flecha1.goto(2000,2000)
         if shield_pos != ubicacion:
-            alma_player.shape("alma verde rota.gif")
-            ventana.ontimer(ventana.bye, 700)
-        else:
-            ventana.ontimer(flecha_1,10)
+            if estado == "rojo":
+                alma_player.shape("alma verde rota.gif")
+                ventana.ontimer(ventana.bye, 700)
+        elif shield_pos == ubicacion:
+            if estado == "verde":
+                alma_player.shape("alma verde rota.gif")
+                ventana.ontimer(ventana.bye, 700)
+            
+        ventana.ontimer(flecha_1,10)
 
 
 
