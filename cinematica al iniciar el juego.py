@@ -574,7 +574,7 @@ def movimiento_pj1_escena6():
     pj2 = ImageTk.PhotoImage(pj2_img)
     canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
 
-escena6() #inicia la sexta escena
+escena5() #inicia la sexta escena
 
 
 ventana.mainloop()
