@@ -1,5 +1,5 @@
 {
-    "timestamp": "2026-06-01T08:28:30.523382",
+    "timestamp": "2026-05-31T20:52:27.526029",
     "puntos": {
         "P1": 0,
         "P2": 0
@@ -7,46 +7,50 @@
     "turno_actual": "J1",
     "posiciones": {
         "J1": {
-            "casilla_actual": 14,
+            "casilla_actual": 42,
             "pierde_turno": false
         },
         "J2": {
-            "casilla_actual": 9,
+            "casilla_actual": 37,
             "pierde_turno": false
         }
     },
     "tablero": {
         "casillas_juego": [
             [
-                18,
-                7
+                6,
+                2
+            ],
+            [
+                2,
+                1
             ],
             [
                 12,
                 8
             ],
             [
-                10,
-                4
+                7,
+                16
             ],
             [
-                16,
-                3
+                13,
+                10
             ],
             [
-                17,
-                13
+                5,
+                9
             ],
             [
                 16,
                 15
             ],
             [
-                17,
-                11
+                12,
+                15
             ],
             [
-                18,
+                1,
                 6
             ],
             [
@@ -178,8 +182,8 @@
                 11
             ],
             [
-                9,
-                4
+                5,
+                2
             ]
         ]
     }
