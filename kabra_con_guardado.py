@@ -6,6 +6,8 @@ from tkinter import messagebox
 import time
 import winsound as ws
 import os
+import subprocess
+import sys
 from guardar_juego import guardar_partida, cargar_partida, listar_partidas_guardadas, eliminar_partida
 
 P1 = 0
@@ -492,6 +494,12 @@ def mover_jugador(pasos):
                 ws.PlaySound(ruta_sonido, ws.SND_FILENAME | ws.SND_ASYNC)
             except:
                 pass
+        # Lanzar minijuego en proceso separado (archivo minijuego_turtle.py)
+        ruta_script = os.path.join(os.path.dirname(__file__), "minijuego_turtle.py")
+        try:
+            subprocess.Popen([sys.executable, ruta_script])
+        except Exception as err:
+            print("No se pudo iniciar el minijuego:", err)
 
     if pasos > 0 and coordenada_logica in casillas_trampa:
         escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN SOUL!", align="center", font=("Arial", 24, "bold"))

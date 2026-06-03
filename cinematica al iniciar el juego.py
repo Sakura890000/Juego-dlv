@@ -588,7 +588,7 @@ def movimiento_pj1_escena6():
         ventana.after(100) #llama a esta funcion cada 50 milisegundos
     
 
-escena6() #inicia la sexta escena
+escena5() #inicia la sexta escena
 
 
 ventana.mainloop()
