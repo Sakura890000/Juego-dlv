@@ -476,7 +476,7 @@ def escena5():
 def mover_pjs_escena5(iteracion=0):
     global pj1_id, pj1_img, pj1, pj2_id, pj2_img, pj2, zoom_factor, resta_zoom_pjs_escena5
     
-    if iteracion < 45: #limita el movimiento a 20 iteraciones
+    if iteracion < 49: #limita el movimiento a 20 iteraciones
         canvas.move(pj1_id, 0, -4) #mueve el personaje 1 hacia arriba
         canvas.move(pj2_id, 0, -4) #mueve el personaje 2 hacia arriba
         
@@ -507,6 +507,7 @@ def mover_pjs_escena5(iteracion=0):
         img_frisk_res = img_frisk_pil.resize((int(w_frisk * zoom_factor), int(h_frisk * zoom_factor)))
         pj2 = ImageTk.PhotoImage(img_frisk_res)
         canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
+        
         resta_zoom_pjs_escena5 -= 0.00035
         #///zoom pj1///
         canvas.update() #actualiza el canvas para mostrar el cambio de imagen
@@ -528,20 +529,21 @@ def escena6():
     fondo_id = canvas.create_image(0, 0,anchor="nw", image=fondo)
 
     #personaje 1
-    carpeta_sprites_link_escena6 = "link sprites"
+    frame_inicial_link = 20
     
-    pj1_archivo = f'20_link sprites.png'
-    pj1_directorio = os.path.join(carpeta_sprites_link_escena6, pj1_archivo)
-    pj1_img = Image.open(pj1_directorio) #importa imagen
+    pj1_img = obtener_frame_link(frame_inicial_link)
     pj1_img = pj1_img.resize((65, 70))  #tamano de link ancho x alto
     pj1 = ImageTk.PhotoImage(pj1_img)   
     pj1_id = canvas.create_image(140, 590, anchor="center", image=pj1) #coordenadas de link x y
 
     #personaje 2
-    pj2_img = Image.open("Frisk.png") #importa imagen
-    pj2_img = pj2_img.resize((130, 130))  #tamano de zelda ancho x alto
+    
+    frame_inicial_frisk = 2
+    
+    pj2_img = obtener_frame_frisk(frame_inicial_frisk)
+    pj2_img = pj2_img.resize((80, 100))  #tamano de zelda ancho x alto
     pj2 = ImageTk.PhotoImage(pj2_img)
-    pj2_id = canvas.create_image(570, 709, anchor="center", image=pj2) #coordenadas de zelda x y
+    pj2_id = canvas.create_image(570, 698, anchor="center", image=pj2) #coordenadas de zelda x y
     
     direccion = 1.0
     balanceo_dir =  1.0
@@ -552,27 +554,39 @@ def escena6():
 def movimiento_pj1_escena6():
     global pj1_id, pj1, pj2_id, pj2
     
-    ##---pj1---
-    canvas.coords(pj1_id, 595, 560) #obtiene las coordenadas actuales del personaje 1
     
-    carpeta_sprites_link_escena6 = "link sprites"
-    pj1_archivo = f'30_link sprites.png'
-    pj1_directorio = os.path.join(carpeta_sprites_link_escena6, pj1_archivo)
-    pj1_img = Image.open(pj1_directorio) #importa imagen
-    pj1_img = pj1_img.resize((65, 70))  #tamano de link ancho x alto
-    pj1 = ImageTk.PhotoImage(pj1_img)   
-    canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
     
     ##---pj2---
     canvas.coords(pj2_id, 230, 555) #obtiene las coordenadas actuales del personaje 2
     
-    carpeta_sprites_frisk_escena6 = "frisk sprites"
-    pj2_archivo = f'04_frisk sprites.png'
-    pj2_directorio = os.path.join(carpeta_sprites_frisk_escena6, pj2_archivo)
-    pj2_img = Image.open(pj2_directorio) #importa imagen
+    pj2_img = obtener_frame_frisk(4) #importa imagen
     pj2_img = pj2_img.resize((50, 65))  #tamano de zelda ancho x alto
     pj2 = ImageTk.PhotoImage(pj2_img)
     canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
+    coords = canvas.coords(pj2_id) #obtiene las coordenadas actuales del personaje 1
+    
+    iteracion =0
+    if canvas.coords(pj2_id) == [230.0, 555.0] and iteracion <30: #si el personaje 1 esta en la posicion del cofre
+            
+        canvas.coords(pj1_id, 595, 560) #obtiene las coordenadas actuales del personaje 1
+
+        pj1_img = obtener_frame_link(30) #importa imagen
+        pj1_img = pj1_img.resize((65, 70))  #tamano de link ancho x alto
+        pj1 = ImageTk.PhotoImage(pj1_img)   
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        sprite_inicial_link = 30
+        total_frames_link = 3
+        num_archivo_link = sprite_inicial_link + (iteracion % total_frames_link) #cambia el frame cada 3 iteraciones\
+        img_link_pil = obtener_frame_link(num_archivo_link)
+        w_link, h_link = 65, 70
+    
+        img_link_res = img_link_pil.resize((int(w_link), int(h_link)))
+        pj1 = ImageTk.PhotoImage(img_link_res)
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        iteracion += 1
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        ventana.after(100) #llama a esta funcion cada 50 milisegundos
+    
 
 escena6() #inicia la sexta escena
 
