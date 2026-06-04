@@ -1,3 +1,5 @@
+from unittest import case
+
 from PIL import Image, ImageTk
 import turtle as tr
 import random as rd
@@ -256,7 +258,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 12 
+CANTIDAD_MINIJUEGOS = 80 
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -462,7 +464,7 @@ def recrear_tokens():
 
 
 def mover_jugador(pasos):
-    global turno_actual, P1, P2
+    global turno_actual, P1, P2, posiciones
     jugador = posiciones[turno_actual]
     
     if pasos > 0:
@@ -495,11 +497,46 @@ def mover_jugador(pasos):
             except:
                 pass
         # Lanzar minijuego en proceso separado (archivo minijuego_turtle.py)
-        ruta_script = os.path.join(os.path.dirname(__file__), "minijuego_turtle.py")
+        ruta_script = os.path.join(os.path.dirname(__file__), "undyne.py")
         try:
-            subprocess.Popen([sys.executable, ruta_script])
+            # Ejecuta el script y captura la salida de la consola (stdout)
+            resultado = subprocess.run(
+                [sys.executable, ruta_script], 
+                capture_output=True, 
+                text=True
+            )
+            
+            # Limpiamos el texto recibido (quita espacios y saltos de línea)
+            respuesta = resultado.stdout.strip()
+            
+            # Modificar la variable P1 según lo que pasó en el minijuego
+            if turno_actual == "J1":
+                player = "j1"
+            else:
+                player = "j2"
+
+            match player:
+                case "j1":
+                    if respuesta == "GANO":
+                        print("registrado")
+                        mover_jugador(3)  # Avanza 3 casillas extra
+                        print(f"¡{turno_actual} ganó el minijuego! P1 ahora vale: {P1}")
+                    elif respuesta == "PERDIO":
+                        mover_jugador(-3)  # Retrocede 3 casillas
+                        print(f"{turno_actual} perdió el minijuego. P1 ahora vale: {P1}")
+                
+                case "j2":
+                    if respuesta == "GANO":
+                        mover_jugador(3)  # Avanza 3 casillas extra
+                        print(f"¡{turno_actual} ganó el minijuego! P2 ahora vale: {P2}")
+                    elif respuesta == "PERDIO":
+                        mover_jugador(-3)  # Retrocede 3 casillas
+                        print(f"{turno_actual} perdió el minijuego. P2 ahora vale: {P2}")
+                
+            puntos_label1.config(text=f"Puntos J1: {P1}")
+            puntos_label2.config(text=f"Puntos J2: {P2}")
         except Exception as err:
-            print("No se pudo iniciar el minijuego:", err)
+            print("No se pudo iniciar o procesar el minijuego:", err)
 
     if pasos > 0 and coordenada_logica in casillas_trampa:
         escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN SOUL!", align="center", font=("Arial", 24, "bold"))

@@ -123,6 +123,7 @@ def flecha_1():
             if estado == "rojo":
                 alma_player.shape("alma verde rota.gif")
                 ventana.ontimer(ventana.bye, 700)
+                print("GANO")
         elif shield_pos == ubicacion:
             if estado == "verde":
                 alma_player.shape("alma verde rota.gif")
