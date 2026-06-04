@@ -24,6 +24,10 @@ pj2_img = None
 pj2 = None
 pj2_id = None
 
+relay_img = None
+relay = None
+relay_id = None
+
 #///deben reiniciarse por escena///
 zoom_factor = 1.0
 direccion = 1 #1 para bajar, -1 para subir, 0 para detener
@@ -522,6 +526,7 @@ def escena6():
     global pj1_img, pj1, pj1_id 
     global pj2_img, pj2, pj2_id
     global direccion, balanceo_dir, zoom_factor
+    global relay_img, relay, relay_id
     
     canvas.update() #actualiza el canvas para mostrar el cambio de imagen
     canvas.delete("all") #limpia el canvas para la nueva escena
@@ -549,6 +554,12 @@ def escena6():
     pj2 = ImageTk.PhotoImage(pj2_img)
     pj2_id = canvas.create_image(570, 698, anchor="center", image=pj2) #coordenadas de zelda x y
     
+    #relay
+    relay_img = Image.open("relay.png")
+    relay_img = relay_img.resize((80, 80))  #tamano de zelda ancho x alto
+    relay = ImageTk.PhotoImage(relay_img)
+    relay_id = canvas.create_image(472, 430, anchor="center", image=relay)
+    
     direccion = 1.0
     balanceo_dir =  1.0
     zoom_factor = 1.0
@@ -557,18 +568,20 @@ def escena6():
 
     
 def movimiento_pjs_escena6_pt2(iteracion=0):
-    global pj1_id, pj1, pj2_id, pj2
-    if iteracion ==0:
+    global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
     
+    if iteracion <17: #si el personaje 1 esta en la posicion del cofre
         ##---pj2---
         canvas.coords(pj2_id, 230, 555) #obtiene las coordenadas actuales del personaje 2
         
         pj2_img = obtener_frame_frisk(4) #importa imagen
         pj2_img = pj2_img.resize((50, 65))  #tamano de zelda ancho x alto
         pj2 = ImageTk.PhotoImage(pj2_img)
+        
+        
         canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
-    
-    if iteracion <30: #si el personaje 1 esta en la posicion del cofre
+        
+        #////pj1///
         sprite_inicial_link = 30
         total_frames_link = 3
         
@@ -590,24 +603,125 @@ def movimiento_pjs_escena6_pt2(iteracion=0):
         canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
         
         canvas.update() #actualiza el canvas para mostrar el cambio de imagen
-        ventana.after(100, lambda: movimiento_pjs_escena6_pt2(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+        ventana.after(300, lambda: movimiento_pjs_escena6_pt2(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
     else: 
         movimiento_pjs_escena6_pt3() #inicia la siguiente parte del movimiento de los personajes en la escena 6
         
-def movimiento_pjs_escena6_pt3():
-    global pj1_id, pj1, pj2_id, pj2
-    canvas.coords(pj1_id, 143, 642) #obtiene las coordenadas actuales del personaje 1
+def movimiento_pjs_escena6_pt3(iteracion=0):
+    global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img, frame_inicial_link, frame_inicial_frisk
+    canvas.coords(pj1_id, 143, 643) #obtiene las coordenadas actuales del personaje 1
 
     pj1_img = Image.open("link_escena6.png") #importa imagen
     pj1_img = pj1_img.resize((19, 45))  #tamano de link ancho x alto
     pj1 = ImageTk.PhotoImage(pj1_img)
     canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
     
-    canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+    if iteracion < 10: #si el personaje 2 esta en la posicion del cofre
+        #///pj2//
+        canvas.coords(pj2_id, 305, 535) #obtiene las coordenadas actuales del personaje 2
+        sprites_frisk = [10, 7, 4]
+        
+        num_archivo_frisk = sprites_frisk[iteracion % len(sprites_frisk)] #cambia el frame cada 2 iteraciones\
+        
+        
+        img_frisk_pil = obtener_frame_frisk(num_archivo_frisk)
+        w_frisk, h_frisk = 35, 40
+        
+        img_frisk_res = img_frisk_pil.resize((int(w_frisk), int(h_frisk)))
+        pj2 = ImageTk.PhotoImage(img_frisk_res)
+        
+        canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
+        
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        ventana.after(600, lambda: movimiento_pjs_escena6_pt3(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+    else:
+        movimiento_pjs_escena6_pt4() #inicia la siguiente parte del movimiento de los personajes en la escena 6
+
+def movimiento_pjs_escena6_pt4(iteracion=0):
+    global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img, frame_inicial_link, frame_inicial_frisk
+    if iteracion < 10:
+        canvas.coords(pj2_id, 370, 750) #obtiene las coordenadas actuales del personaje 1
+        pj2_img = Image.open("Frisk.png") #importa imagen
+        pj2_img = pj2_img.resize((1700, 1700))  #tamano de zelda ancho x alto
+        pj2 = ImageTk.PhotoImage(pj2_img)
+        canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen
+        
+        ventana.after(400, lambda: movimiento_pjs_escena6_pt4(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+    else:
+        pj2_img = pj2_img.resize((15, 15))  #tamano de zelda ancho x alto
+        pj2 = ImageTk.PhotoImage(pj2_img)
+        canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen
+        movimiento_pjs_escena6_pt5() #inicia la siguiente parte del movimiento de los personajes en la escena 6
+
+def movimiento_pjs_escena6_pt5(iteracion=0):
+    global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
+
+    if iteracion < 15:
+        
+        frame_inicial_link = 0
+        total_frames_link = 3
+        num_archivo_link = frame_inicial_link + (iteracion % total_frames_link) #cambia el frame cada 3 iteraciones\
+            
+        canvas.coords(pj1_id, 370, 380) #obtiene las coordenadas actuales del personaje 2
+
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        img_link_pil = obtener_frame_link(num_archivo_link)
+        w_link, h_link = 1500, 1500 
+        img_link_res = img_link_pil.resize((int(w_link), int(h_link)))
+        pj1 = ImageTk.PhotoImage(img_link_res)
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        ventana.after(200, lambda: movimiento_pjs_escena6_pt5(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+    
+    else:
+        pj1_img = pj1_img.resize((15, 15))  #tamano de link ancho x alto
+        pj1 = ImageTk.PhotoImage(pj1_img)
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        movimiento_pjs_escena6_pt6() #inicia la siguiente parte del movimiento de los personajes en la escena 6
+
+def movimiento_pjs_escena6_pt6(iteracion=0):
+    global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
+
+    if iteracion < 5:
+        #///pj2///
+        if iteracion ==0:
+             canvas.coords(pj2_id, 450, 560) #obtiene las coordenadas actuales del personaje 2
+        sprites_frisk = [10, 7]
+        
+        num_archivo_frisk = sprites_frisk[iteracion % len(sprites_frisk)] #cambia el frame cada 2 iteraciones\
+        
+        
+        img_frisk_pil = obtener_frame_frisk(num_archivo_frisk)
+        w_frisk, h_frisk = 35, 40
+        
+        img_frisk_res = img_frisk_pil.resize((int(w_frisk), int(h_frisk)))
+        pj2 = ImageTk.PhotoImage(img_frisk_res)
+        
+        canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
+        
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+       
+        if iteracion == 0:
+            canvas.coords(pj1_id, 500, 560) #obtiene las coordenadas actuales del personaje 1
+        sprites_link = [60, 10]
+        
+        num_archivo_link = sprites_link[iteracion % len(sprites_link)] #cambia el frame cada 2 iteraciones\
+            
+        img_link_pil = obtener_frame_link(num_archivo_link)
+        w_link, h_link = 35, 40
+        img_link_res = img_link_pil.resize((int(w_link), int(h_link)))
+        pj1 = ImageTk.PhotoImage(img_link_res)
+        canvas.itemconfig(pj1_id, image=pj1) #actualiza la imagen del personaje 1 en el canvas
+        
+        canvas.update() #actualiza el canvas para mostrar el cambio de imagen
+        ventana.after(2000, lambda: movimiento_pjs_escena6_pt6(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+    else:
+        print("termino escena 6")
+   
     
     
 
-escena3() #inicia la sexta escena
+escena6() #inicia la sexta escena
 
 
 ventana.mainloop()
