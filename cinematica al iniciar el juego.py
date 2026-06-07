@@ -28,7 +28,7 @@ relay_img = None
 relay = None
 relay_id = None
 
-escena_actual_cin = 5
+escena_actual_cin = 1
 
 #///deben reiniciarse por escena///
 zoom_factor = 1.0
@@ -1010,7 +1010,7 @@ def cargar_siguiente_escena ():
 
         kabra_con_guardado()
     
-escena5()
+cargar_siguiente_escena()
     
     
 
