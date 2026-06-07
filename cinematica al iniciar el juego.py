@@ -8,7 +8,6 @@ from PIL import Image, ImageTk
 from PIL import ImageOps 
 import math
 
-
 ventana = tk.Tk()
 canvas = tk.Canvas(ventana, width=700, height=690)
 canvas.pack()
@@ -28,6 +27,8 @@ pj2_id = None
 relay_img = None
 relay = None
 relay_id = None
+
+escena_actual_cin = 5
 
 #///deben reiniciarse por escena///
 zoom_factor = 1.0
@@ -67,6 +68,10 @@ def obtener_frame_frisk(num_archivo):
 zoom_factor_pj2_escena3 = 1.0
 zoom_factor_pj1_escena3 = 1.0
 
+
+
+
+#///escena 1////?
 def escena1():
      global fondo_img, fondo, fondo_id
      global pj1_img, pj1, pj1_id
@@ -103,7 +108,10 @@ def escena1():
 
 
 def mover_fondo1():
-    global direccion
+    global direccion, escena_actual_cin
+    
+    if escena_actual_cin != 1:
+        return
     canvas.move(fondo_id, 0, direccion *2 ) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, 0, direccion * 2)
     canvas.move(pj2_id, 0, direccion * 2)
@@ -124,13 +132,15 @@ def mover_fondo1():
 ##---ESCENA 1----##
 
 def mover_escena1():
-    global direccion
+    global direccion, escena_actual_cin
+    
+    if escena_actual_cin != 1:
+        return
     canvas.move(fondo_id, -2, 0) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, -2, 0)
     canvas.move(pj2_id, -2, 0)
     x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
     
-    canvas.update() 
     if x >= -250:
           ventana.after(50, mover_escena1) 
     else:
@@ -139,24 +149,51 @@ def mover_escena1():
         canvas.move(pj2_id, 0, 0)
    
         ventana.after(2000, mover_personajes_escena1) #espera 2 segundos 
+        ventana.after(2000, secuencias_finales_escena1)
         
- 
 
 def mover_personajes_escena1():
-    global balanceo_dir
-    canvas.move(pj1_id, 0, balanceo_dir * 3) #mueve el personaje 1 en la direccion actual
-    canvas.move(pj2_id, 0, balanceo_dir * 3) #mueve el personaje 2 en la direccion actual
-    balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
+    global balanceo_dir, escena_actual_cin
     
-    canvas.update() #actualiza el canvas para mostrar el movimiento
+    if escena_actual_cin != 1:
+        return
+
+    # 1. Esto mantiene el balanceo arriba y abajo de ambos personajes
+    canvas.move(pj1_id, 0, balanceo_dir * 3) 
+    canvas.move(pj2_id, 0, balanceo_dir * 3) 
+    balanceo_dir *= -1 
+    
+    # 2. El bucle de balanceo continúa de forma independiente
+    ventana.after(80, mover_personajes_escena1) 
+
+def secuencias_finales_escena1():
+    global escena_actual_cin
+    if escena_actual_cin != 1:
+        return
+
+    # 1. Frisk se mueve a la derecha primero (se ejecuta una sola vez)
     canvas.move(pj2_id, 5, 0)
-    ventana.after(500, mover_personaje1_escena1)
     
-    ventana.after(40, mover_personajes_escena1) #llama a esta funcion cada 50 milisegundos
+    # 2. Esperamos medio segundo (500ms) y arranca la caminata de Link pasando la iteración 0
+    ventana.after(500, lambda: mover_personaje1_escena1(0))
+    ventana.after(80, secuencias_finales_escena1)
+
+def mover_personaje1_escena1(iteracion):
+    global escena_actual_cin
     
-def mover_personaje1_escena1():
-     canvas.move(pj1_id, 5, 0)
-     ventana.after(80, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
+    if escena_actual_cin != 1:
+        return
+        
+    # Ahora la iteración SÍ sube correctamente paso a paso
+    if iteracion < 100:
+        canvas.update()
+        canvas.move(pj1_id, 5, 0)
+        # Forzamos a pasar el argumento (iteracion + 1) en el lambda de forma limpia
+        ventana.after(80, lambda: mover_personaje1_escena1(iteracion + 1)) 
+    else:
+        # ¡ÉXITO! La iteración llegó a 10, cambiamos de escena
+        escena_actual_cin = 2
+        cargar_siguiente_escena()
      
      
 ## --- ESCENA 2----##
@@ -183,7 +220,7 @@ def escena2():
 
     #personaje 2
     pj2_img = Image.open("Frisk lateral.png") #importa imagen
-    pj2_img = pj2_img.resize((100, 100))
+    pj2_img = pj2_img.resize((70, 100))
     pj2 = ImageTk.PhotoImage(pj2_img)
     pj2_id = canvas.create_image(370, 620, anchor="center", image=pj2)
 
@@ -195,6 +232,10 @@ def escena2():
     mover_escena2() #inicia el movimiento de la escena
     
 def mover_fondo2():
+    global escena_actual_cin, direccion, fondo_id, pj1_id, pj2_id
+    if escena_actual_cin != 2:
+        return
+    
     global direccion
     canvas.move(fondo_id, 0, direccion * 2) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, 0, direccion * -2)
@@ -212,7 +253,10 @@ def mover_fondo2():
     ventana.after(50, mover_fondo2) #llama a esta funcion cada 50 milisegundos
 
 def mover_escena2():
-    global direccion
+    global direccion, escena_actual_cin, fondo_id
+    if escena_actual_cin != 2:
+        return
+    
     canvas.move(fondo_id, -2, 0) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, -0.5, 0)
     canvas.move(pj2_id, -0.5, 0)
@@ -225,25 +269,53 @@ def mover_escena2():
         canvas.move(fondo_id, 0, 0) #detiene el movimiento del fondo
         canvas.move(pj1_id, 0, 0)
         canvas.move(pj2_id, 0, 0)
-        ventana.after(2000, mover_personajes_escena1) #espera 2 segundos 
         
- 
-
-def mover_personajes_escena1():
-    global balanceo_dir
-    canvas.move(pj1_id, 0, balanceo_dir * 3) #mueve el personaje 1 en la direccion actual
-    canvas.move(pj2_id, 0, balanceo_dir * 3) #mueve el personaje 2 en la direccion actual
-    balanceo_dir *= -1 #cambia la direccion para el siguiente movimiento
-
-    canvas.move(pj2_id, 5, 0)
-    ventana.after(500, mover_personaje1_escena1)
+        ventana.after(2000, mover_personajes_escena2) #espera 2 segundos 
+        ventana.after(2000, secuencias_finales_escena2)
+        
+def mover_personajes_escena2():
+    global balanceo_dir, escena_actual_cin, pj1_id, pj2_id
     
-    ventana.after(40, mover_personajes_escena1) #llama a esta funcion cada 50 milisegundos
+    if escena_actual_cin != 2:
+        return
+
+    # 1. Esto mantiene el balanceo arriba y abajo de ambos personajes
+    canvas.move(pj1_id, 0, balanceo_dir * 3) 
+    canvas.move(pj2_id, 0, balanceo_dir * 3) 
+    balanceo_dir *= -1 
     
-def mover_personaje1_escena1():
-     canvas.move(pj1_id, 5, 0)
-     ventana.after(200, mover_personaje1_escena1) #llama a esta funcion cada 50 milisegundos
-     
+    # 2. El bucle de balanceo continúa de forma independiente
+    ventana.after(60, mover_personajes_escena2) 
+
+def secuencias_finales_escena2():
+    global escena_actual_cin, pj2_id
+    if escena_actual_cin != 2:
+        return
+
+    # 1. Frisk se mueve a la derecha primero (se ejecuta una sola vez)
+    canvas.move(pj2_id, 10, 0)
+    
+    # 2. Esperamos medio segundo (500ms) y arranca la caminata de Link pasando la iteración 0
+    ventana.after(500, lambda: mover_personaje1_escena2(0))
+    ventana.after(110, secuencias_finales_escena2)
+
+def mover_personaje1_escena2(iteracion):
+    global escena_actual_cin, pj1_id
+    
+    if escena_actual_cin != 2:
+        return
+        
+    # Ahora la iteración SÍ sube correctamente paso a paso
+    if iteracion < 100:
+        canvas.move(pj1_id, 5, 0)
+        # Forzamos a pasar el argumento (iteracion + 1) en el lambda de forma limpia
+        ventana.after(80, lambda: mover_personaje1_escena2(iteracion + 1)) 
+    else:
+        # ¡ÉXITO! La iteración llegó a 10, cambiamos de escena
+        escena_actual_cin = 3
+        cargar_siguiente_escena()
+
+
 ##---- ESCENA 3----##
 
 def escena3 ():
@@ -279,7 +351,9 @@ def escena3 ():
     zoom_fondo_escena3() #inicia el movimiento del fondo
     
 def zoom_fondo_escena3 ():
-    global zoom_factor, fondo_img, fondo_id, direccion
+    global zoom_factor, fondo_img, fondo_id, direccion, escena_actual_cin
+    if escena_actual_cin != 3:
+        return
     #//zoom//
     zoom_factor += 0.001 #aumenta el factor de zoom
     w, h = fondo_img.size
@@ -293,7 +367,6 @@ def zoom_fondo_escena3 ():
     # canvas.move(pj1_id, -2, -4)
     # canvas.move(pj2_id, -2, -4)
     
-    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del fondo
 
     if zoom_factor < 1.015 : #limita el zoom a un factor de 2
         
@@ -307,7 +380,11 @@ def zoom_fondo_escena3 ():
 
 #balanceo de personajes en escena 3
 def balanceo_personaje1_escena3():  
-    global balanceo_dir
+    global escena_actual_cin, balanceo_dir, pj1_id, escena_actual_cin
+    if escena_actual_cin != 3:
+        return
+    if escena_actual_cin != 3:
+        return
     if not canvas.winfo_exists():
         return
     canvas.move(pj1_id, 0, balanceo_dir * 2) #mueve el personaje 1 en la direccion actual
@@ -316,7 +393,9 @@ def balanceo_personaje1_escena3():
     
 
 def balanceo_personaje2_escena3():
-    global balanceo_dir
+    global balanceo_dir, escena_actual_cin
+    if escena_actual_cin != 3:
+       return
     if not canvas.winfo_exists():
         return
     canvas.move(pj2_id, 0, (balanceo_dir * -1) * 2) #mueve el personaje 2 en la direccion actual
@@ -324,7 +403,9 @@ def balanceo_personaje2_escena3():
         
 #movimiento de los persoajes en escena 3
 def mover_personaje1_escena3(iteracion=0):
-    global pj1_img, pj1_id, zoom_factor, zoom_factor_pj1_escena3
+    global pj1_img, pj1_id, zoom_factor, zoom_factor_pj1_escena3, escena_actual_cin
+    if escena_actual_cin != 3:
+       return
     if not canvas.winfo_exists():
         return
     if iteracion < 60: 
@@ -340,7 +421,9 @@ def mover_personaje1_escena3(iteracion=0):
         
         ventana.after(50, lambda: mover_personaje1_escena3(iteracion + 1))
 def mover_personaje2_escena3(iteracion=0):
-    global pj2_img, pj2_id, zoom_factor, zoom_factor_pj2_escena3
+    global pj2_img, pj2_id, zoom_factor, zoom_factor_pj2_escena3, escena_actual_cin
+    if escena_actual_cin != 3:
+        return  
     if not canvas.winfo_exists():
         return
     if iteracion < 120:
@@ -355,6 +438,9 @@ def mover_personaje2_escena3(iteracion=0):
         
         
         ventana.after(50, lambda: mover_personaje2_escena3(iteracion + 1))
+    else: 
+        escena_actual_cin = 4
+        cargar_siguiente_escena()
 
 ##---- ESCENA 4----##
 
@@ -397,12 +483,14 @@ def escena4 ():
     zoom_factor = 1.0
     mover_fondo4()
     movimiento_pj1_escena4() #inicia el movimiento del personaje 1 en la escena 4
-    mover_pj2_escena4() #inicia el movimiento del personaje 2 en la escena 4
+    mover_pj2_escena4(0) #inicia el movimiento del personaje 2 en la escena 4
 
     
-    
 def mover_fondo4():
-    global direccion
+    global direccion, escena_actual_cin
+    
+    if escena_actual_cin != 4:
+        return
     canvas.move(fondo_id, 0, direccion *2 ) #mueve el fondo en la direccion actual
     canvas.move(pj1_id, 0, direccion * 2)
     # canvas.move(pj2_id, 0, direccion * 2)
@@ -420,7 +508,9 @@ def mover_fondo4():
     
 
 def movimiento_pj1_escena4():
-    global espejo
+    global espejo, escena_actual_cin
+    if escena_actual_cin != 4:
+        return
     if espejo:
         canvas.itemconfig(pj1_id, image=canvas.pj1_normal_escena4) #cambia a la imagen normal
     else:
@@ -431,22 +521,26 @@ def movimiento_pj1_escena4():
     # canvas.move(pj1_id, 0, 2) #mueve el personaje 1 hacia abajo
     # ventana.after(50, movimiento_pj1_escena4) #llama a esta funcion cada 50 milisegundos
     
-def mover_pj2_escena4():
-    global balanceo_dir, direccion
-    canvas.move(pj2_id, 0, balanceo_dir * -2)
+def mover_pj2_escena4(iteracion =0):
+    global balanceo_dir, direccion, escena_actual_cin
+    if escena_actual_cin != 4:
+        return
+    if iteracion < 24:
+        canvas.move(pj2_id, 0, balanceo_dir * -2)
+        
+        x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del 
     
-    x, y = canvas.coords(fondo_id) #obtiene las coordenadas actuales del 
-   
-    if y >= 0: 
-        balanceo_dir = -1 
-    elif y <= -4: 
-        balanceo_dir = 1 
-    canvas.update() #actualiza el canvas para mostrar el movimiento
-    ventana.after(250, mover_pj2_escena4) #llama a esta funcion cada 50 milisegundos
-    
+        if y >= 0: 
+            balanceo_dir = -1 
+        elif y <= -4: 
+            balanceo_dir = 1 
+        canvas.update() #actualiza el canvas para mostrar el movimiento
+        ventana.after(250, lambda: mover_pj2_escena4(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
+    else:
+        escena_actual_cin = 5
+        cargar_siguiente_escena()
+
 ##---- ESCENA 5----##
-
-
 
 def escena5():
     global fondo_img, fondo, fondo_id
@@ -486,8 +580,9 @@ def escena5():
 
     
 def mover_pjs_escena5(iteracion=0):
-    global pj1_id, pj1_img, pj1, pj2_id, pj2_img, pj2, zoom_factor, resta_zoom_pjs_escena5
-    
+    global pj1_id, pj1_img, pj1, pj2_id, pj2_img, pj2, zoom_factor, resta_zoom_pjs_escena5, escena_actual_cin
+    if escena_actual_cin != 5:
+        return
     if iteracion < 49: #limita el movimiento a 20 iteraciones
         canvas.move(pj1_id, 0, -4) #mueve el personaje 1 hacia arriba
         canvas.move(pj2_id, 0, -4) #mueve el personaje 2 hacia arriba
@@ -520,11 +615,14 @@ def mover_pjs_escena5(iteracion=0):
         pj2 = ImageTk.PhotoImage(img_frisk_res)
         canvas.itemconfig(pj2_id, image=pj2) #actualiza la imagen del personaje 2 en el canvas
         
-        resta_zoom_pjs_escena5 -= 0.00035
+        resta_zoom_pjs_escena5 -= 0.0002
         #///zoom pj1///
         canvas.update() #actualiza el canvas para mostrar el cambio de imagen
         ventana.after(100, lambda: mover_pjs_escena5(iteracion +1)) #llama a esta funcion cada 50 milisegundos
        
+    else:
+        escena_actual_cin = 6
+        cargar_siguiente_escena()
 def escena6():
     global fondo_img, fondo, fondo_id
     global pj1_img, pj1, pj1_id 
@@ -573,7 +671,10 @@ def escena6():
     
 def movimiento_pjs_escena6_pt2(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
+    global escena_actual_cin
     
+    if escena_actual_cin != 6:
+        return
     if iteracion <17: #si el personaje 1 esta en la posicion del cofre
         ##---pj2---
         canvas.coords(pj2_id, 230, 555) #obtiene las coordenadas actuales del personaje 2
@@ -613,6 +714,10 @@ def movimiento_pjs_escena6_pt2(iteracion=0):
         
 def movimiento_pjs_escena6_pt3(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img, frame_inicial_link, frame_inicial_frisk
+    global escena_actual_cin
+    
+    if escena_actual_cin != 6:
+        return
     canvas.coords(pj1_id, 143, 643) #obtiene las coordenadas actuales del personaje 1
 
     pj1_img = Image.open("link_escena6.png") #importa imagen
@@ -644,6 +749,10 @@ def movimiento_pjs_escena6_pt3(iteracion=0):
 def movimiento_pjs_escena6_pt4(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img, frame_inicial_link, frame_inicial_frisk
     global relay_id, relay_img, relay
+    global escena_actual_cin
+    
+    if escena_actual_cin != 6: 
+        return
     if iteracion < 10:
         canvas.coords(pj2_id, 370, 750) #obtiene las coordenadas actuales del personaje 1
         pj2_img = Image.open("Frisk.png") #importa imagen
@@ -666,7 +775,10 @@ def movimiento_pjs_escena6_pt4(iteracion=0):
 def movimiento_pjs_escena6_pt5(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
     global relay_id, relay_img, relay
-
+    global escena_actual_cin
+    
+    if escena_actual_cin != 6:
+        return
     if iteracion < 15:
         
         frame_inicial_link = 0
@@ -697,8 +809,10 @@ def movimiento_pjs_escena6_pt5(iteracion=0):
 
 def movimiento_pjs_escena6_pt6(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
+    global escena_actual_cin
     
-
+    if escena_actual_cin != 6:
+        return
     if iteracion < 5:
         #///pj2///
         if iteracion ==0:
@@ -739,7 +853,10 @@ def movimiento_pjs_escena6_pt7(iteracion=0):
     global pj1_id, pj1, pj2_id, pj2, pj1_img, pj2_img
     global relay_id, relay_img, relay
     global direccion
-
+    global escena_actual_cin
+    
+    if escena_actual_cin != 6:
+        return
     if iteracion < 65:
        #relay
         if iteracion == 0:
@@ -760,7 +877,8 @@ def movimiento_pjs_escena6_pt7(iteracion=0):
 
         ventana.after(30, lambda: movimiento_pjs_escena6_pt7(iteracion + 1)) #llama a esta funcion cada 50 milisegundos
     else:
-        escena7() #inicia la escena 7
+        escena_actual_cin = 7
+        cargar_siguiente_escena()
         
 def escena7():
     global fondo_img, fondo, fondo_id
@@ -804,6 +922,7 @@ def mov_escena7(iteracion = 0):
     global pj1, pj1_img, pj1_id
     global pj2, pj2_img, pj2_id
     global angulo_orbita, angulo_propio, radio_espiral
+    global escena_actual_cin
     
     if not canvas.winfo_exists():
         return
@@ -859,19 +978,43 @@ def mov_escena7(iteracion = 0):
         #RECURSIVIDAD PAQ VEA Q SI SE NOJOA
         ventana.after(40, lambda: mov_escena7(iteracion + 1))
     else: 
-        print("hoakakamg")
-        
-        
-    
-    
-                                 
+        escena_actual_cin = 8
+        cargar_siguiente_escena()
+      
         
 
+#---carga de escena----
 
+
+def cargar_siguiente_escena ():
+    global cargar_siguiente_escena
+    
+    canvas.delete("all")
+    if escena_actual_cin == 1:
+        escena1()
+    elif escena_actual_cin == 2:
+        escena2()
+    elif escena_actual_cin == 3:
+        escena3()
+    elif escena_actual_cin == 4:
+        escena4()
+    elif escena_actual_cin == 5:
+        escena5()
+    elif escena_actual_cin == 6:
+        escena6()
+    elif escena_actual_cin == 7:
+        escena7()
+    elif escena_actual_cin == 8:
+        ventana.destroy
+        import kabra_con_guardado
+
+        kabra_con_guardado()
+    
+escena5()
     
     
 
-escena7() #inicia la sexta escena
+# escena7() #inicia la sexta escena
 
 
 ventana.mainloop()
