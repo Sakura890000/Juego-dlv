@@ -1008,7 +1008,7 @@ def cargar_siguiente_escena ():
         ventana.destroy
         import kabra_con_guardado
 
-        kabra_con_guardado()
+        kabra_con_guardado
     
 cargar_siguiente_escena()
     
