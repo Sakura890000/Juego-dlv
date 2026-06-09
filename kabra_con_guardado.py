@@ -15,6 +15,13 @@ from guardar_juego import guardar_partida, cargar_partida, listar_partidas_guard
 P1 = 0
 P2 = 0
 
+# Variable global para controlar si cargar partida automáticamente
+cargar_partida_automaticamente = False
+
+# Verificar si se pasó argumento para cargar partida automáticamente
+if "--auto-load" in sys.argv:
+    cargar_partida_automaticamente = True
+
 # --- VENTANA DADO (Tkinter) ---
 ventana_dado = tk.Tk()
 ventana_dado.title("🎲 Juego del Tablero 🎲")
@@ -258,7 +265,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 80 
+CANTIDAD_MINIJUEGOS = 12 
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -334,7 +341,7 @@ pintor_final.stamp()
 
 
 # --- CAPA DE LUCKY ---
-CANTIDAD_LUCKYS = 14
+CANTIDAD_LUCKYS = 20
 casillas_lucky = set()
 
 pintor_lucky = tr.Turtle()
@@ -342,7 +349,7 @@ pintor_lucky.hideturtle()
 pintor_lucky.speed(0)
 pintor_lucky.shape(luck)
 
-opciones_lucky = [c for c in CAMINO_CASILLAS[1:-1] if c not in casillas_juego]
+opciones_lucky = [c for c in CAMINO_CASILLAS[1:-1] if c not in casillas_juego and c not in casillas_trampa]
 
 
 while len(casillas_lucky) < CANTIDAD_LUCKYS and opciones_lucky:
@@ -424,6 +431,26 @@ def redibujar_casillas():
     pintor_final.goto(px, py)
     pintor_final.stamp()
 
+def ganar():
+    """Maneja la lógica cuando un jugador llega a la meta"""
+    global turno_actual, P1, P2
+    
+    ruta = os.path.join(os.path.dirname(__file__), "winner.wav")
+    if os.path.exists(ruta):
+        try:
+            ws.PlaySound(ruta, ws.SND_FILENAME | ws.SND_ASYNC)
+        except:
+            pass
+    
+    if turno_actual == "J1":
+        P1 += 1
+    else:
+        P2 += 1
+    
+    puntos_label1.config(text=f"Puntos J1: {P1}")
+    puntos_label2.config(text=f"Puntos J2: {P2}")
+    print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
+
 def recrear_tokens():
     """(Re)crea el dado y las fichas para garantizar que queden en primer plano."""
     global display_dado, jugador1, jugador2, posiciones
@@ -463,29 +490,25 @@ def recrear_tokens():
 
 
 
-def mover_jugador(pasos):
+def mover_jugador(pasos, cambiar_turno=True):
     global turno_actual, P1, P2, posiciones
     jugador = posiciones[turno_actual]
-    
-    if pasos > 0:
+
+    if pasos != 0:
         nueva_casilla = jugador["casilla_actual"] + pasos
         max_casillas = len(CAMINO_CASILLAS)
-        
+
         if nueva_casilla >= max_casillas - 1:
             nueva_casilla = max_casillas - 1
-            if turno_actual == "J1":
-                P1 += 1
-            else:
-                P2 += 1
-            print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
-            puntos_label1.config(text=f"Puntos J1: {P1}")
-            puntos_label2.config(text=f"Puntos J2: {P2}")
-            
+            ganar()
+        elif nueva_casilla < 0:
+            nueva_casilla = 0
+
         jugador["casilla_actual"] = nueva_casilla
     
     coordenada_logica = CAMINO_CASILLAS[jugador["casilla_actual"]]
 
-    if pasos > 0 and coordenada_logica in casillas_juego:
+    if pasos != 0 and coordenada_logica in casillas_juego:
         escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN MINIJUEGO!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, escritor_alertas.clear)
         print(f"{turno_actual} cayó en un minijuego. ¡A jugar!.")
@@ -538,7 +561,7 @@ def mover_jugador(pasos):
         except Exception as err:
             print("No se pudo iniciar o procesar el minijuego:", err)
 
-    if pasos > 0 and coordenada_logica in casillas_trampa:
+    if pasos != 0 and coordenada_logica in casillas_trampa:
         escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN SOUL!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, escritor_alertas.clear)
         print(f"¡OH NO! {turno_actual} cayó en un Soul. ¡Perdiste un turno!")
@@ -554,14 +577,15 @@ def mover_jugador(pasos):
             except:
                 pass
 
-    if pasos > 0 and coordenada_logica in casillas_lucky:
+    if pasos != 0 and coordenada_logica in casillas_lucky:
         ruta_sonido = os.path.join(os.path.dirname(__file__), "China.wav")
-    
-        if os.path.exists(ruta_sonido):
-            try:
-                ws.PlaySound(ruta_sonido, ws.SND_FILENAME | ws.SND_ASYNC)
-            except:
-                pass
+
+        # Mostrar la ficha en la casilla lucky inmediatamente para que se vea
+        pixel_x = inicioX + (coordenada_logica[0] * casillaSize) + (casillaSize // 2)
+        pixel_y = inicioY + (coordenada_logica[1] * casillaSize) + (casillaSize // 2)
+        jugador["turtle"].goto(pixel_x, pixel_y)
+        pantalla.update()
+
         escritor_alertas.write(f"¡{turno_actual} ENCONTRÓ UN LUCKY!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, escritor_alertas.clear)
         print(f"¡UY! {turno_actual} encontró un Lucky. ¡Avanza o retrocede 2 casillas extra!")
@@ -574,40 +598,18 @@ def mover_jugador(pasos):
         ventana_dado.after(2000, alertas_lucky.clear)
 
         def aplicar_lucky():
-            global turno_actual, P1, P2
-            if opcion == "avanzar":
-                jugador["casilla_actual"] += 2
-            else:
-                jugador["casilla_actual"] -= 2
+            pasos_lucky = 2 if opcion == "avanzar" else -2
+            mover_jugador(pasos_lucky)
 
-            max_casillas = len(CAMINO_CASILLAS)
-            if jugador["casilla_actual"] >= max_casillas - 1:
-                ruta = os.path.join(os.path.dirname(__file__), "winner.wav")
-                if os.path.exists(ruta):
-                    try:
-                        ws.PlaySound(ruta, ws.SND_FILENAME | ws.SND_ASYNC)
-                    except:
-                        pass
-                jugador["casilla_actual"] = max_casillas - 1
-                if turno_actual == "J1":
-                    P1 += 1
-                else:
-                    P2 += 1
-                puntos_label1.config(text=f"Puntos J1: {P1}")
-                puntos_label2.config(text=f"Puntos J2: {P2}")
-                print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
-            elif jugador["casilla_actual"] < 0:
-                jugador["casilla_actual"] = 0
+        # Reproducir sonido (si existe) y programar la aplicación del lucky tras 3 segundos
+        delay_ms = 3000
+        if os.path.exists(ruta_sonido):
+            try:
+                ws.PlaySound(ruta_sonido, ws.SND_FILENAME | ws.SND_ASYNC)
+            except:
+                pass
 
-            coordenada_lucky = CAMINO_CASILLAS[jugador["casilla_actual"]]
-            pixel_x = inicioX + (coordenada_lucky[0] * casillaSize) + (casillaSize // 2)
-            pixel_y = inicioY + (coordenada_lucky[1] * casillaSize) + (casillaSize // 2)
-            jugador["turtle"].goto(pixel_x, pixel_y)
-            turno_actual = "J2" if turno_actual == "J1" else "J1"
-            pantalla.update()
-            boton_lanzar.config(state="normal")
-
-        ventana_dado.after(4000, aplicar_lucky)
+        ventana_dado.after(delay_ms, aplicar_lucky)
         return
 
             
@@ -617,7 +619,7 @@ def mover_jugador(pasos):
     
     jugador["turtle"].goto(pixel_x, pixel_y)
     
-    if pasos > 0:
+    if cambiar_turno and pasos != 0:
         turno_actual = "J2" if turno_actual == "J1" else "J1"
         
     pantalla.update()
@@ -630,10 +632,14 @@ pantalla.listen()
 # (Re)crear tortugas para que queden visibles encima de las casillas
 recrear_tokens()
 
-mover_jugador(0)
-turno_actual = "J2"
-mover_jugador(0)
-turno_actual = "J1"
+# Cargar partida automáticamente si existe
+if cargar_partida_automaticamente:
+    ventana_dado.after(500, cargar_estado_anterior)
+else:
+    mover_jugador(0)
+    turno_actual = "J2"
+    mover_jugador(0)
+    turno_actual = "J1"
 
 pantalla.update()
 pantalla.mainloop()

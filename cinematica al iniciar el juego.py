@@ -4,6 +4,8 @@ from email.mime import image
 import tkinter as tk
 import turtle as tr
 import os
+import subprocess
+import sys
 from PIL import Image, ImageTk
 from PIL import ImageOps 
 import math
@@ -30,7 +32,7 @@ relay_id = None
 
 escena_actual_cin = 1
 
-#///deben reiniciarse por escena///
+##---deben reiniciarse por escena///
 zoom_factor = 1.0
 direccion = 1 #1 para bajar, -1 para subir, 0 para detener
 balanceo_dir = 1
@@ -1005,10 +1007,9 @@ def cargar_siguiente_escena ():
     elif escena_actual_cin == 7:
         escena7()
     elif escena_actual_cin == 8:
-        ventana.destroy
-        import kabra_con_guardado
-
-        kabra_con_guardado()
+        # Cinemática terminada, ejecutar el juego
+        ventana.destroy()
+        subprocess.Popen([sys.executable, "kabra_con_guardado.py"])
     
 cargar_siguiente_escena()
     
