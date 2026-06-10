@@ -249,7 +249,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 15
+CANTIDAD_MINIJUEGOS = 18
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -273,7 +273,7 @@ while len(casillas_juego) < CANTIDAD_MINIJUEGOS and opciones_juego:
         pintor_juego.stamp()
 
 # --- CAPA DE TRAMPAS (SOUL) ---
-CANTIDAD_TRAMPAS = 14
+CANTIDAD_TRAMPAS = 18
 casillas_trampa = set()
 
 pintor_trampa = tr.Turtle()
