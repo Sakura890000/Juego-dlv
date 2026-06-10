@@ -85,6 +85,68 @@ def cargar_estado_anterior():
     
     messagebox.showinfo("Cargado", "✓ Partida cargada correctamente")
 
+
+# --- VENTANA DE INSTRUCCIONES PARA MINIJUEGOS ---
+INSTRUCCIONES_MINIJUEGOS = {
+    "undyne": (
+        "Undyne:\n"
+        "Controla a tu personaje usando las teclas mostradas en el minijuego.\n"
+        "Evita enemigos y alcanza la meta o la condición de victoria indicada.\n"
+        "Sigue las instrucciones en pantalla del minijuego específico."
+    ),
+    "snake": (
+        "Snake:\n"
+        "Usa las flechas Izquierda/Derecha/Arriba/Abajo para mover la serpiente.\n"
+        "Recoge la comida para crecer. No choques contra las paredes ni contigo mismo.\n"
+        "Cuanto más tiempo sobrevivas, más puntos obtendrás."
+    ),
+    "tetris": (
+        "Tetris:\n"
+        "Mueve las piezas con las flechas Izquierda/Derecha, baja con Abajo, y rota con Arriba.\n"
+        "Completa líneas horizontales para eliminarlas y sumar puntos.\n"
+        "Evita que las piezas lleguen hasta arriba de la pantalla."
+    )
+}
+
+
+def mostrar_instrucciones_para(nombre):
+    """Abre un Toplevel con las instrucciones del minijuego solicitado."""
+    texto = INSTRUCCIONES_MINIJUEGOS.get(nombre.lower(), "No hay instrucciones disponibles.")
+    top = tk.Toplevel(ventana_dado)
+    top.title(f"Instrucciones - {nombre.capitalize()}")
+    top.geometry("420x260")
+    top.transient(ventana_dado)
+    top.grab_set()
+
+    label = tk.Label(top, text=nombre.capitalize(), font=("Arial", 14, "bold"))
+    label.pack(pady=(10, 2))
+
+    text_widget = tk.Text(top, wrap="word", height=10, bg="#111", fg="white")
+    text_widget.insert("1.0", texto)
+    text_widget.config(state="disabled")
+    text_widget.pack(fill="both", expand=True, padx=10, pady=6)
+
+    btn_close = tk.Button(top, text="Cerrar", command=top.destroy)
+    btn_close.pack(pady=(0, 10))
+
+
+def abrir_ventana_instrucciones():
+    """Muestra una ventana con botones para cada minijuego."""
+    top = tk.Toplevel(ventana_dado)
+    top.title("Instrucciones de Minijuegos")
+    top.geometry("420x140")
+    top.transient(ventana_dado)
+    top.grab_set()
+
+    frame_opts = tk.Frame(top)
+    frame_opts.pack(pady=12)
+
+    tk.Button(frame_opts, text="Undyne", width=12, command=lambda: mostrar_instrucciones_para("undyne")).pack(side="left", padx=6)
+    tk.Button(frame_opts, text="Snake", width=12, command=lambda: mostrar_instrucciones_para("snake")).pack(side="left", padx=6)
+    tk.Button(frame_opts, text="Tetris", width=12, command=lambda: mostrar_instrucciones_para("tetris")).pack(side="left", padx=6)
+
+    tk.Button(top, text="Cerrar", command=top.destroy).pack(pady=(6, 10))
+
 def lanzar_dado():
     global turno_actual
 
@@ -136,6 +198,9 @@ boton_guardar.pack(side="left", padx=5)
 
 boton_cargar = tk.Button(frame_botones, text="📂 Cargar", command=cargar_estado_anterior, bg="#FF9800", fg="white", font=("Arial", 10, "bold"))
 boton_cargar.pack(side="left", padx=5)
+
+boton_instrucciones = tk.Button(frame_botones, text="❓ Instrucciones", command=abrir_ventana_instrucciones, bg="#9C27B0", fg="white", font=("Arial", 10, "bold"))
+boton_instrucciones.pack(side="left", padx=5)
 
 frame_puntos = tk.Frame(ventana_dado)
 frame_puntos.pack(pady=10)
@@ -561,22 +626,22 @@ def mover_jugador(pasos, cambiar_turno=True):
             # Usar if/in evita fallos por espacios o textos extra en la consola
             if "GANO" in respuesta:
                 print("registrado")
-                imprimir_alerta(f"¡{turno_actual} GANÓ!", "#55C44B")
+                imprimir_alerta("GANASTE UN MINIJUEGO", "#55C44B", 1400)
                 if turno_actual == "J1":
                     P1 += 1
                 else:
                     P2 += 1
                 print(f"¡Ganaste el minijuego! {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
-                ventana_dado.after(800, lambda: mover_jugador(3))
+                ventana_dado.after(1400, lambda: mover_jugador(3))
 
             elif "PERDIO" in respuesta:
-                imprimir_alerta(f"¡{turno_actual} PERDIÓ!", "#C4634B")
+                imprimir_alerta("PERDISTE UN MINIJUEGO", "#C4634B", 1400)
                 print("registradoP")
                 if turno_actual == "J1":
                     P1 -= 1
                 else:
                     P2 -= 1
-                ventana_dado.after(800, lambda: mover_jugador(-3))
+                ventana_dado.after(1400, lambda: mover_jugador(-3))
                 print(f"Perdiste el minijuego. {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
 
             else:

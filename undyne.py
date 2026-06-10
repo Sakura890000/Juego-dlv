@@ -1,5 +1,7 @@
 import turtle as tl
 import random as rd
+import tkinter as tk
+from tkinter import messagebox
 
 ataques_posibles = ["right","left","up", "down"]
 estados_posibles = ["rojo","verde"]
@@ -10,7 +12,7 @@ shield_reset = 70
 velocidad_proyectiles = 3
 estadofinal="PERDIO"
 juego_activo = True
-tiempo_restante = 2
+tiempo_restante = 15
 
 ventana = tl.Screen()
 ventana.setup(1200,700)
@@ -31,6 +33,7 @@ ventana.register_shape("shield right.gif")
 ventana.register_shape("shield up.gif")
 ventana.register_shape("shield down.gif")
 
+
 # --- Texto del Temporizador ---
 reloj_texto = tl.Turtle()
 reloj_texto.hideturtle()
@@ -38,6 +41,24 @@ reloj_texto.penup()
 reloj_texto.color("white")
 reloj_texto.goto(0, 300)
 reloj_texto.write(f"TIEMPO: {tiempo_restante}", align="center", font=("Arial", 24, "bold"))
+
+
+def mostrar_instrucciones_tk():
+    texto = (
+        "Undyne\n\n"
+        "Cómo jugar:\n"
+        "- Usa W/A/S/D o las flechas para colocar el escudo en la dirección deseada.\n"
+        "- Bloquea las flechas VERDES. Si bloqueas una flecha ROJA o no bloqueas una VERDE, pierdes.\n"
+        "- Sobrevive hasta que el temporizador llegue a 0.\n\n"
+        "Pulsa Aceptar para comenzar."
+    )
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showinfo("Instrucciones - Undyne", texto, parent=root)
+        root.destroy()
+    except Exception:
+        messagebox.showinfo("Instrucciones - Undyne", texto)
 
 escudo = tl.Turtle()
 escudo.penup()
@@ -197,6 +218,9 @@ ventana.onkey(arriba, "w")
 ventana.onkey(arriba, "Up")
 ventana.onkey(abajo, "s")
 ventana.onkey(abajo, "Down")
+
+# Mostrar instrucciones en ventana modal antes de iniciar el juego
+mostrar_instrucciones_tk()
 
 ventana.ontimer(flecha_1, 10)
 ventana.ontimer(actualizar_tiempo, 1000)
