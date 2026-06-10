@@ -249,7 +249,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 80
+CANTIDAD_MINIJUEGOS = 15
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -433,7 +433,30 @@ def ganar():
     
     puntos_label1.config(text=f"Puntos J1: {P1}")
     puntos_label2.config(text=f"Puntos J2: {P2}")
+    imprimir_alerta(f"¡Felicidades! {turno_actual} ha llegado a la meta!", "#52AC5A")
     print(f"¡Felicidades! {turno_actual} ha llegado a la meta.")
+
+
+def imprimir_alerta(texto, color="#969696", duracion=2000):
+    """Muestra un mensaje de alerta en pantalla y borra el texto automáticamente."""
+    escritor_alertas.clear()
+    escritor_alertas.color(color)
+    escritor_alertas.write(texto, align="center", font=("Arial", 24, "bold"))
+    ventana_dado.after(duracion, escritor_alertas.clear)
+
+
+def animar_movimiento(jugador, inicio, destino):
+    """Anima el movimiento entre casillas para que el usuario vea el recorrido."""
+    paso = 1 if destino > inicio else -1
+    for casilla in range(inicio + paso, destino + paso, paso):
+        jugador["casilla_actual"] = casilla
+        coordenada = CAMINO_CASILLAS[casilla]
+        pixel_x = inicioX + (coordenada[0] * casillaSize) + (casillaSize // 2)
+        pixel_y = inicioY + (coordenada[1] * casillaSize) + (casillaSize // 2)
+        jugador["turtle"].goto(pixel_x, pixel_y)
+        pantalla.update()
+        time.sleep(0.12)
+
 
 def recrear_tokens():
     """(Re)crea el dado y las fichas para garantizar que queden en primer plano."""
@@ -482,17 +505,31 @@ def mover_jugador(pasos, cambiar_turno=True):
 
         if nueva_casilla >= max_casillas - 1:
             nueva_casilla = max_casillas - 1
-            ganar()
-        elif nueva_casilla < 0:
+            ganador = True
+        else:
+            ganador = False
+        if nueva_casilla < 0:
             nueva_casilla = 0
 
+        punto_inicial = jugador["casilla_actual"]
+        if nueva_casilla != punto_inicial:
+            animar_movimiento(jugador, punto_inicial, nueva_casilla)
+        else:
+            coordenada_actual = CAMINO_CASILLAS[jugador["casilla_actual"]]
+            jugador["turtle"].goto(
+                inicioX + (coordenada_actual[0] * casillaSize) + (casillaSize // 2),
+                inicioY + (coordenada_actual[1] * casillaSize) + (casillaSize // 2)
+            )
+            pantalla.update()
+
         jugador["casilla_actual"] = nueva_casilla
+        if ganador:
+            ganar()
     
     coordenada_logica = CAMINO_CASILLAS[jugador["casilla_actual"]]
 
     if pasos != 0 and coordenada_logica in casillas_juego:
-        escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN MINIJUEGO!", align="center", font=("Arial", 24, "bold"))
-        ventana_dado.after(2000, escritor_alertas.clear)
+        imprimir_alerta(f"¡{turno_actual} CAYÓ EN UN MINIJUEGO!", "#F2C94C")
         print(f"{turno_actual} cayó en un minijuego. ¡A jugar!.")
         ruta_sonido = os.path.join(os.path.dirname(__file__), "Jijija.wav")
     
@@ -519,25 +556,32 @@ def mover_jugador(pasos, cambiar_turno=True):
             # Limpiamos el texto recibido (quita espacios y saltos de línea)
             respuesta = resultado.stdout.strip()
             
-            # Modificar la variable P1 según lo que pasó en el minijuego
             player = "j1" if turno_actual == "J1" else "j2"
 
-            # Match moderno evaluando jugador y respuesta al mismo tiempo
-            match respuesta:
-                case "GANO":
-                    print("registrado")
+            # Usar if/in evita fallos por espacios o textos extra en la consola
+            if "GANO" in respuesta:
+                print("registrado")
+                imprimir_alerta(f"¡{turno_actual} GANÓ!", "#55C44B")
+                if turno_actual == "J1":
                     P1 += 1
-                    print(f"¡Ganaste el minijuego! P1 ahora vale: {P1}")
-                    mover_jugador(3)
+                else:
+                    P2 += 1
+                print(f"¡Ganaste el minijuego! {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
+                ventana_dado.after(800, lambda: mover_jugador(3))
 
-                case "PERDIO":
-                    print("registradoP")
+            elif "PERDIO" in respuesta:
+                imprimir_alerta(f"¡{turno_actual} PERDIÓ!", "#C4634B")
+                print("registradoP")
+                if turno_actual == "J1":
                     P1 -= 1
-                    mover_jugador(-3)  # Retrocede 3 casillas
-                    print(f"Perdiste el minijuego. P1 ahora vale: {P1}")
-                
-                case _:
-                    print(f"Salida inesperada del minijuego: {respuesta}")
+                else:
+                    P2 -= 1
+                ventana_dado.after(800, lambda: mover_jugador(-3))
+                print(f"Perdiste el minijuego. {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
+
+            else:
+                # Imprime la respuesta entre corchetes [] para ver si tiene espacios o texto oculto
+                print(f"Salida inesperada del minijuego: [{respuesta}]")
             puntos_label1.config(text=f"Puntos J1: {P1}")
             puntos_label2.config(text=f"Puntos J2: {P2}")
         except Exception as err:
@@ -580,11 +624,11 @@ def mover_jugador(pasos, cambiar_turno=True):
         label_dado.config(text=f"¡{turno_actual} encontró un Lucky!\nAvanza o retrocede 2 casillas extra")
         opcion = rd.choice(["avanzar", "retroceder"])
         if opcion == "avanzar":
-            alertas_lucky.color="#494949"
-            alertas_lucky.write(f"¡{turno_actual} eligió avanzar!", align="center", font=("Arial", 24, "bold"))
+            alertas_lucky.color("#52AC5A")
+            alertas_lucky.write(f"¡{turno_actual} te tocó avanzar!", align="center", font=("Arial", 24, "bold"))
         else:
-            alertas_lucky.color="#494949"
-            alertas_lucky.write(f"¡{turno_actual} eligió retroceder!", align="center", font=("Arial", 24, "bold"))
+            alertas_lucky.color("#C96363")
+            alertas_lucky.write(f"¡{turno_actual} te tocó retroceder!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, alertas_lucky.clear)
 
         def aplicar_lucky():

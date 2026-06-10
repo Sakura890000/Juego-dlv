@@ -1,6 +1,7 @@
 import turtle as tr
 import random as rd
 import time
+import sys
 
 # Configuración de la pantalla
 screen = tr.Screen()
@@ -147,16 +148,25 @@ def anadirpunto():
 
 #  Bucle Principal del Juego
 
-def perder(Pts,PtsNec):
+def perder(Pts, PtsNec):
+    global juego_activo
+    juego_activo = False # Frena el bucle automático
+
     if Pts >= PtsNec:
         Resultado.color("#61fa82")
-        Resultado.write(f"Pasaste con {Puntos} Puntoss!!",font=80, align="center")
-        print("GANO")
+        Resultado.write(f"Pasaste con {Puntos} Puntoss!!", font=("Arial", 24, "bold"), align="center")
+        print("GANO", flush=True)
     else:
         Resultado.color("#fa6161")
-        Resultado.write(f"Perdiste con {Puntos} Puntoss",font=80, align="center")
-        print("PERDIO")
+        Resultado.write(f"Perdiste con {Puntos} Puntoss", font=("Arial", 24, "bold"), align="center")
+        print("PERDIO", flush=True)
+        
+    # TRUCO AQUÍ: Fuerza a Turtle a renderizar el texto en pantalla AHORA MISMO
+    screen.update() 
     
+    # Espera 2 segundos mostrando el texto y luego cierra
+    screen.ontimer(screen.bye, 1000) 
+
 
 def paso_del_juego():
     global comida_logica
