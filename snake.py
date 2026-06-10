@@ -19,6 +19,21 @@ Puntos=0
 inicioTabX = -((casillaSize * tableroSizeX) / 2)
 inicioTabY = -((casillaSize * tableroSizeY) / 2)
 
+
+def mostrar_instrucciones_snake():
+    instr = tr.Turtle()
+    instr.hideturtle()
+    instr.penup()
+    instr.color("white")
+    try:
+        y = screen.window_height() // 2 - 160
+    except Exception:
+        y = 200
+    instr.goto(0, y)
+    instr.write("Snake: Flechas para mover. Come la manzana. Evita chocar.", align="center", font=("Arial", 14, "bold"))
+    screen.update()
+    screen.ontimer(instr.clear, 2500)
+
 # Rutas
 perro = "assets/box.gif"
 prota = "assets/criper.gif"
@@ -219,5 +234,6 @@ def paso_del_juego():
     screen.ontimer(paso_del_juego, 200)
 
 # Inicia el bucle de juego
+mostrar_instrucciones_snake()
 paso_del_juego()
 screen.mainloop()
