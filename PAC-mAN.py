@@ -155,6 +155,7 @@ def win():
         print("yujuu")
         
         return
+
 def mapa_pacman():
     
     grosor_borde = 3
@@ -238,6 +239,8 @@ def teclado_pacman(event):
 def mover_pacman():
     global pacman_col, pacman_fila, pacman_dy, pacman_dx, boca_pacman
     global pacman_deseo_dy, pacman_deseo_dx
+    if not juego_activo:
+        return
     
     test_fila_deseo = pacman_fila + pacman_deseo_dy
     test_col_deseo = pacman_col + pacman_deseo_dx
@@ -280,6 +283,8 @@ def mover_pacman():
             wakawaka()
             
             ghost_busters()
+            
+            morido()
             
             win()
             
@@ -354,9 +359,11 @@ def crear_vida ():
 
 
 def morido():
-    global vidas_pacman, pacman_fila, pacman_col, pacman_dx, pacman_dy
-    global blinky_fila, blinky_col, blinky_afuera, pinky_fila, pinky_col, pinky_afuera
-    global inky_fila, inky_col, inky_afuera, clyde_fila, clyde_col, clyde_afuera
+    global vidas_pacman, pacman_fila, pacman_col, pacman_dx, pacman_dy, juego_activo
+    global blinky_fila, blinky_col, blinky_afuera, blinky_muerto
+    global pinky_fila, pinky_col, pinky_afuera, pinky_muerto
+    global inky_fila, inky_col, inky_afuera, inky_muerto
+    global clyde_fila, clyde_col, clyde_afuera, clyde_muerto
     
     if not juego_activo or modo_fantasma == "frightened":
         return
@@ -367,28 +374,134 @@ def morido():
         (inky_fila, inky_col, inky_muerto),
         (clyde_fila, clyde_col, clyde_muerto)
     ]
+    
     for ff, cf, esta_morido in fantasmas:
         if pacman_fila == ff and pacman_col == cf and not esta_morido:
             vidas_pacman -= 1
+            juego_activo = False # Congela movimientos instantáneamente
             
+            # Forzar borrado visual del último icono de vida en el Canvas
             if len(iconos_vidas_id) > 0:
-                ultimo_icono = iconos_vidas_id.pop()
-                canvas.delete(ultimo_icono)
+                canvas.delete(iconos_vidas_id.pop())
             
-            win()
+            win() # Comprueba si quedan 0 vidas para acabar la partida
             
-            if juego_activo:
-                pacman_fila = 23
-                pacman_col  =  13
-                pacman_dx = 0
-                pacman_dy = 0
-                
-                blinky_fila, blinky_col, blinky_afuera = 11, 13, False
-                pinky_fila, pinky_col, pinky_afuera = 14, 14, False
-                inky_fila, inky_col, inky_afuera = 14, 12, False
-                clyde_fila, clyde_col, clyde_afuera = 14, 15, False
+            if vidas_pacman > 0:
+                animar_muerte_boca(300) # Inicia la animación de desaparición original
             return
+
+def animar_muerte_boca(angulo_actual):
+    if angulo_actual > 0:
+        # Reduce paulatinamente el sector del arco simulando que se lo traga la tierra
+        canvas.itemconfig(pacman_id, extent=angulo_actual)
+        ventana.after(50, lambda: animar_muerte_boca(angulo_actual - 30))
+    else:
+        canvas.itemconfig(pacman_id, extent=0)
+        # Retardo de castigo de 1.5 segundos antes de reposicionar y aparecer
+        ventana.after(1500, reiniciar_posiciones_fieles)
+
+def reiniciar_posiciones_fieles():
+    global juego_activo, pacman_fila, pacman_col, pacman_dx, pacman_dy
+    global blinky_fila, blinky_col, blinky_afuera, blinky_muerto
+    global pinky_fila, pinky_col, pinky_afuera, pinky_muerto
+    global inky_fila, inky_col, inky_afuera, inky_muerto
+    global clyde_fila, clyde_col, clyde_afuera, clyde_muerto
+
+    # 1. Forzar estados y posiciones lógicas originales de la matriz
+    pacman_fila, pacman_col = 23, 13
+    pacman_dx, pacman_dy = 0, 0
     
+    blinky_fila, blinky_col, blinky_afuera, blinky_muerto = 11, 13, True, False
+    pinky_fila, pinky_col, pinky_afuera, pinky_muerto = 14, 14, False, False
+    inky_fila, inky_col, inky_afuera, inky_muerto = 14, 12, False, False
+    clyde_fila, clyde_col, clyde_afuera, clyde_muerto = 14, 15, False, False
+
+    # 2. Re-alinear físicamente a Pac-Man en el Canvas
+    px = pacman_col * size_celda
+    py = (pacman_fila * size_celda) + margen_arriba
+    canvas.coords(pacman_id, px + 2, py + 2, px + size_celda - 2, py + size_celda - 2)
+    canvas.itemconfig(pacman_id, start=30, extent=300, fill="yellow", outline="yellow")
+
+    # 3. Re-alinear físicamente a TODOS los fantasmas con sus IDs correctos
+    # BLINKY (Rojo)
+    mover_especifico_canvas(blinky_id, blinky_fila, blinky_col, blinky_ojo_left_id, blinky_ojo_right_id, blinky_pupila_left_id, blinky_pupula_right_id)
+    canvas.itemconfig(blinky_id, fill="red", outline="red")
+    
+    # PINKY (Rosa)
+    mover_especifico_canvas(pinky_id, pinky_fila, pinky_col, pinky_ojo_left_id, pinky_ojo_right_id, pinky_pupila_left_id, pinky_pupula_right_id)
+    canvas.itemconfig(pinky_id, fill="#FFB8FF", outline="#FFB8FF")
+    
+    # INKY (Cian)
+    mover_especifico_canvas(inky_id, inky_fila, inky_col, inky_ojo_left_id, inky_ojo_right_id, inky_pupila_left_id, inky_pupila_right_id)
+    canvas.itemconfig(inky_id, fill="#00FFFF", outline="#00FFFF")
+    
+    # CLYDE (Naranja)
+    mover_especifico_canvas(clyde_id, clyde_fila, clyde_col, clyde_ojo_left_id, clyde_ojo_right_id, clyde_pupila_left_id, clyde_pupula_right_id)
+    canvas.itemconfig(clyde_id, fill="#FFB852", outline="#FFB852")
+
+    # 4. Restaurar pupilas a color azul original
+    for p_id in [blinky_pupila_left_id, blinky_pupula_right_id, pinky_pupila_left_id, pinky_pupula_right_id, inky_pupila_left_id, inky_pupila_right_id, clyde_pupila_left_id, clyde_pupula_right_id]:
+        if p_id: canvas.itemconfig(p_id, fill="blue", outline="blue")
+
+    # 5. Reactivar el movimiento general del juego
+    juego_activo = True
+
+    # 🚀 RE-INVOCACIÓN DE MOTORES: Volvemos a arrancar los bucles recursivos del juego
+    mover_pacman()
+    mover_blinky()
+    mover_pinky()
+    mover_inky()
+    mover_clyde()
+
+def mover_especifico_canvas(obj_id, fila, col, o_l, o_r, p_l, p_r):
+    if not obj_id: return
+    x = col * size_celda
+    y = (fila * size_celda) + margen_arriba
+    mx1, my1, mx2, my2 = x + 2, y + 2, x + size_celda - 2, y + size_celda - 2
+    
+    puntos = [
+        mx1, my2, mx1, my1 + 8, mx1 + 4, my1 + 2, mx2 - 4, my1 + 2,
+        mx2, my1 + 8, mx2, my2, mx1 + 10, my2 - 4, mx1 + 5, my2, mx1 + 2, my2 - 4
+    ]
+    canvas.coords(obj_id, puntos)
+    if o_l: canvas.coords(o_l, mx1 + 2, my1 + 4, mx1 + 7, my1 + 10)
+    if o_r: canvas.coords(o_r, mx2 - 7, my1 + 4, mx2 - 2, my1 + 10)
+    if p_l: canvas.coords(p_l, mx1 + 4, my1 + 6, mx1 + 6, my1 + 8)
+    if p_r: canvas.coords(p_r, mx2 - 6, my1 + 6, mx2 - 4, my1 + 8)
+    
+def animar_morido (angulo_actual = 300):
+    global juego_activo, pacman_fila, pacman_col, pacman_dx, pacman_dy
+    
+    juego_activo = False
+    if angulo_actual > 0:
+        canvas.itemconfig(pacman_id, extent= angulo_actual)
+        ventana.after(60, lambda: animar_morido(angulo_actual - 30))
+    
+    else:
+        canvas.itemconfig(pacman_id, extent= 0)
+        ventana.after(1500, reiniciar_morido)
+        
+def reiniciar_morido ():
+    global juego_activo, pacman_fila, pacman_col, pacman_dx, pacman_dy
+    global blinky_fila, blinky_col, blinky_afuera, pinky_fila, pinky_col, pinky_afuera
+    global inky_fila, inky_col, inky_afuera, clyde_fila, clyde_col, clyde_afuera
+    
+    pacman_fila, pacman_col = 23, 13
+    pacman_dx, pacman_dy = 0, 0
+    
+    blinky_fila, blinky_col, blinky_afuera = 11, 13, True
+    pinky_fila, pinky_col, pinky_afuera = 14, 14, True
+    inky_fila, inky_col, inky_afuera = 14, 12, True
+    clyde_fila, clyde_col, clyde_afuera = 14, 15, True
+    
+    canvas.itemconfig(pacman_id, start = 30, extent = 300)
+    
+    x1 = pacman_col *size_celda
+    y1 = (pacman_fila * size_celda) +margen_arriba
+    canvas.coords(pacman_id, x1 + 2, y1 + 1, x1 + size_celda - 2, y1 + size_celda - 2)
+    
+    juego_activo = True
+    mover_pacman()
 def abstinencia():
     global modo_fantasma, modo_anterior
     
@@ -720,8 +833,10 @@ def mover_blinky ():
         canvas.itemconfig(blinky_id, fill="red", outline="red")
         canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
-    
+    morido()
     win()
+    canvas.update()
+    
     velocidad_actual = 80 if blinky_muerto else 200
     ventana.after(velocidad_actual, mover_blinky)
     
@@ -945,6 +1060,9 @@ def mover_pinky():
         canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
     
     win()
+    morido()
+    canvas.update()
+    
     velocidad_actual = 80 if pinky_muerto else 200
     ventana.after(velocidad_actual, mover_pinky)
             
@@ -1166,6 +1284,9 @@ def mover_inky ():
         canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
     
     win()   
+    morido()
+    canvas.update()
+    
     velocidad_actual = 80 if inky_muerto else 200
     ventana.after(velocidad_actual, mover_inky)
     
@@ -1310,6 +1431,9 @@ def mover_clyde():
         canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
     
     win()   
+    morido()
+    canvas.update()
+    
     velocidad_actual = 80 if clyde_muerto else 200
     ventana.after(velocidad_actual, mover_clyde)        
             
@@ -1361,3 +1485,37 @@ motor_pacman()
 
 
 ventana.mainloop()
+
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣄⣀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⠟⠋⠙⠋⠉⠙⢷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣤⣶⣶⣄⠀⠀⠀⢠⣾⣿⣁⡀⠀⠀⠀⠀⠀⠀⢑⣿⡆⠀⠀⠀⢠⣾⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣿⣾⣦⡀⢠⣾⡿⣛⣛⡻⢷⣄⠀⠀⣴⣾⣿⠛⠻⠦⣄⣴⣿⣿⡿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠻⢿⣿⣿⣿⣿⣿⢿⣿⣿⣧⢼⣿⣿⣿⠿⣿⣇⢸⡟⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⠿⢿⣾⣿⣤⠿⠋⠀⠈⠻⢿⣿⣧⣿⠟⣬⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⠃⠀⠀⢀⣴⣖⣶⠀⠀⠀⠀⠀⢀⡈⠀⠀⢘⣾⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣶⣶⣶⠿⠿⠿⠿⠷⠶⠶⠶⠛⠋⠻⣦⣤⣀⡼⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡇⠀⣿⠻⢷⣤⣀⠀⠀⠀⠈⠀⠀⠀⣀⣈⡻⢿⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣿⡿⠛⡏⠁⠂⠘⠭⢿⣒⣒⡒⠒⠒⠊⠉⠁⠀⠀⣿⠤⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣿⠟⠁⡄⠣⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡌⠙⠲⣤⣀⠠⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣏⠀⠀⢿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⠋⠀⠀⠀⠀⠈⠙⠚⠓⠶⢤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣿⣿⣿⣿⣶⣀⡴⠛⢷⣄⣠⣄⡀⠀⠀⠀⠀⠀⠀⠀⠐⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠳⢦⡀⠀⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣤⣤⠴⠾⣿⣿⣿⣿⣿⠟⠛⠿⣿⣦⣄⠙⢻⣿⣷⣦⡤⠤⠶⠒⠛⠁⣠⠏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣆⠀⠀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⡾⠏⠁⠀⠀⠀⠀⠰⠿⠟⠋⠀⠀⠀⠀⠈⠉⠛⠙⠋⠉⠉⠀⠀⠀⠀⠀⣀⡴⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢧⡀⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⠀⢀⣴⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠐⠒⠋⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⠀⠀⠀⠀
+# ⠀⠀⠀⠀⠀⢀⣾⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢉⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⡇⠀⠀⠀
+# ⠀⠀⠀⠀⢄⣾⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⡀⢸⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣧⢀⡀⠀⠀⠀⠀⠀⠀⠀⠀⣧⠀⠀⠀
+# ⠀⠀⠀⠀⣼⣋⣧⣶⠀⠀⠀⢀⡀⣀⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡤⣼⣿⣿⣟⣤⡀⠀⠀⠀⠀⠀⠀⠘⣦⠀⠀
+# ⠀⠀⠀⠀⣿⡟⡇⣿⣤⣤⣴⣼⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢼⣷⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠠⠏⣴⣿⣿⠋⠉⠉⠛⠋⡄⠂⠀⠀⠀⠀⠈⣇⠀
+# ⠀⠀⠀⢀⣿⣷⣜⢿⣿⣿⣿⣿⣿⣿⣟⢿⣷⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣶⠾⣿⣿⣷⠀⠀⠀⠀⠀⠀⠀⠐⠖⣠⣶⣿⣟⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡀
+# ⠀⠀⢀⣾⠋⠻⣿⡶⠍⠙⠛⢿⣿⣿⣿⣮⡙⠿⣿⣶⣤⣄⣀⣤⣤⣤⣤⡀⢀⣈⣁⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇
+# ⠀⠀⣾⠇⠀⠀⠘⢷⡇⠀⠀⠀⢿⣿⣿⣿⣿⣶⣼⣿⣿⣟⣻⣿⣿⣿⣿⡿⠟⠛⠁⠀⠉⠻⢿⣿⣶⣤⣴⣶⣶⣤⣶⣿⣿⣿⣿⣿⣿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⠇
+# ⠀⢸⣿⠀⠀⠀⢠⡞⠀⠀⠀⠀⢾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣋⣠⣀⠀⠀⠀⠀⠀⠀⠀⢉⣛⢻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⠀
+# ⠀⢸⡏⠀⠀⠀⣼⠁⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⠛⠿⡿⠛⠉⠉⠉⠁⠀⢀⠀⠀⠀⠀⠀⠉⠰⠿⠿⠛⠻⠟⠉⠁⢩⢹⣿⣿⣄⠀⠸⣆⠀⠀⠀⠀⠀⠀⠀⠀⡇⠀
+# ⠀⣿⢿⠀⠀⣰⠇⠀⠀⠀⠀⠀⣿⡟⢻⣿⣿⣿⣿⣿⡟⠻⢶⣤⠀⠀⠀⠀⠀⠀⠀⢸⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣸⣿⢿⣿⣿⣦⠀⢹⣆⠀⠀⠀⠀⠀⠀⠀⡇⠀
+# ⢀⡟⠺⠀⢐⡿⠀⠀⠀⠀⢀⣼⣿⠁⠀⢻⣿⣿⣿⣿⣿⣷⣤⣿⣤⣤⣤⣤⣶⡄⠀⠀⣿⣇⣤⣤⣀⣀⡀⠀⠀⠀⠀⠀⠈⢿⣷⣿⡾⠁⢿⣿⣷⣿⣿⡷⠀⠀⠀⠀⠀⠀⡇⠀
+# ⢸⡇⠀⠘⣿⡁⠀⠀⢀⣰⣿⣿⠃⠀⠀⠀⢻⣿⣽⠋⠛⢯⢿⣿⠛⠛⠋⠉⠙⠛⠲⣄⠉⠉⠁⠈⠉⠙⠛⠷⣦⣤⣤⣌⠀⠀⢸⡟⠁⠀⠀⠻⣿⣿⣿⣍⠀⠀⠀⠀⠀⠀⢧⠀
+# ⢸⠁⠀⠀⢹⣷⣿⣿⣿⣿⣿⠋⠀⠀⠀⠀⢸⣿⢢⠀⠂⠀⣭⣿⡀⠀⠀⠀⠀⠀⠀⢸⡉⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⡿⠀⠀⠀⠀⠀⢹⣿⡿⠉⠀⠀⠀⠀⠀⠀⡾⠀
+# ⠀⠀⠀⠀⠀⠋⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⣼⣏⠈⠁⢰⠀⢨⣿⣧⣀⡀⣠⠀⠀⠀⣸⡁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⡇⠀⠀⠀⠀⠀⣸⡍⠁⠀⠀⠀⠀⠀⠀⣠⣷⠀
+# ⠀⠀⠀⠀⠀⠀⠙⢿⣿⡇⠀⠀⠀⠀⠀⢠⣿⠟⠇⠀⠈⠑⢦⣿⠿⠿⠿⠿⠶⢀⢀⣸⠿⣶⣦⣠⡖⠀⠀⠀⠀⠀⠀⠀⢀⣿⠀⠀⠀⠀⠀⠀⡿⠀⠀⠀⠀⠀⠀⠀⠀⠘⢻⡆
+# ⠀⠀⠀⠀⠀⠀⠀⠀⣼⡇⠀⠀⠀⠀⠀⣸⡗⠀⠀⠀⠀⠀⠀⠙⠷⡄⣀⠀⠀⠻⠟⠃⠀⠀⠀⠀⠤⠀⠀⠀⠀⠀⠀⠀⣾⡟⠀⠀⠀⠀⠀⢰⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇
+# ⠀⠀⠀⠀⠀⠀⠀⠀⠹⠇⠀⠀⠀⠀⠀⣸⣿⠠⢰⣶⠄⠀⠀⠀⢀⣀⠀⢠⠀⠀⢠⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣙⣿⠁⠀⠀⠀⠀⠀⣸⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠇
