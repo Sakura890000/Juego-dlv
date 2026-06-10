@@ -3,6 +3,8 @@
 import tkinter as tk
 
 import random
+import subprocess
+import sys
 
 ventana =tk.Tk()
 
@@ -50,7 +52,7 @@ matriz_pacman = [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 
 
-juego_activo = True
+juego_activo = False
 
 pacman_fila = 23
 pacman_col =13
@@ -141,18 +143,38 @@ clyde_pupila_right_id = None
 
 pausado = False
 
+###TECTOOOO
+
+cuadro_fondo_id = canvas.create_rectangle(40, 150, 520, 450, fill="black", outline="blue", width=4)
+
+# Texto con la explicación de la jugabilidad
+texto_instrucciones_id = canvas.create_text(
+    280, 280, 
+    text="✨ PAC-MAN BARETIAO\n"
+         "CONTROLES:\n"
+         "▪ Usa las flechas del teclado o wasd para moverte.\n\n"
+         "REGLAS:\n"
+         "▪ Come todos los puntos para ganar.\n"
+         "▪ Evita a los fantasmas si están de color.\n"
+         "▪ Come las pastillas grandes para poder devorarlos.\n\n"
+         "👉 Presiona ENTER para comenzar a jugar 👈",
+    fill="white", 
+    font=("Arial", 12, "bold"), 
+    justify="center")
+
 def win():
     global juego_activo
     
     if vidas_pacman <= 0:
         juego_activo = False
         
-        print("game over")
+        print("PERDIO")
         
         return
     if len(mapa_ids_bolitas) == 0:
         juego_activo =False
-        print("yujuu")
+        print("GANO")
+
         
         return
 
@@ -286,7 +308,6 @@ def mover_pacman():
             
             morido()
             
-            win()
             
             if pacman_dx != 0 or pacman_dy != 0:
                 #abre y cierra boca
@@ -834,7 +855,6 @@ def mover_blinky ():
         canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
     morido()
-    win()
     canvas.update()
     
     velocidad_actual = 80 if blinky_muerto else 200
@@ -1059,7 +1079,6 @@ def mover_pinky():
         canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
     
-    win()
     morido()
     canvas.update()
     
@@ -1283,7 +1302,6 @@ def mover_inky ():
         canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
     
-    win()   
     morido()
     canvas.update()
     
@@ -1430,7 +1448,7 @@ def mover_clyde():
         canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
     
-    win()   
+
     morido()
     canvas.update()
     
@@ -1461,27 +1479,34 @@ def clyde_ojoalegre():
                   centro_ojo_right_x + df_x_r + radio_pupila,
                   centro_ojo_y + df_y + radio_pupila)
 ##FUNCIN PARA EMPEZAR EL JUEGO
-def motor_pacman ():
-    mapa_pacman()
-    crear_pacman()
-    crear_score()
-    crear_blinky()
-    crear_pinky()
-    crear_inky()
-    crear_clyde()
-    crear_vida()
-    
-    ventana.bind("<KeyPress>", teclado_pacman)
-    
-    reloj_modo_ia()
-    mover_pacman()
-    viva_bazuco()
-    mover_blinky()
-    mover_pinky()
-    mover_inky()
-    mover_clyde()
+def motor_pacman (event):
+    global juego_activo
+    if not juego_activo:
+        canvas.delete(cuadro_fondo_id)
+        canvas.delete(texto_instrucciones_id)
+        
+        juego_activo = True
+        mapa_pacman()
+        crear_pacman()
+        crear_score()
+        crear_blinky()
+        crear_pinky()
+        crear_inky()
+        crear_clyde()
+        crear_vida()
+        
+        ventana.bind("<KeyPress>", teclado_pacman)
+        
+        reloj_modo_ia()
+        mover_pacman()
+        viva_bazuco()
+        mover_blinky()
+        mover_pinky()
+        mover_inky()
+        mover_clyde()
 
-motor_pacman()
+ventana.bind("<Return>", motor_pacman)
+
 
 
 ventana.mainloop()
