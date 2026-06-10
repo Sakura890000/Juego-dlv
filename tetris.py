@@ -16,7 +16,7 @@ soul = "assets/soul.gif"
 luck = "assets/bricks.gif"
 sculk= "assets/sculk.gif"
 
-for asset in [beacon, box, soul, luck]:
+for asset in [beacon, box, soul, luck, sculk]:
     if os.path.exists(asset):
         pantalla.register_shape(asset)
 
