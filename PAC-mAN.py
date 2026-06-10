@@ -49,19 +49,24 @@ matriz_pacman = [
     [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]]
 
+
+juego_activo = True
+
 pacman_fila = 23
 pacman_col =13
 pacman_id = None
 score_texto_id = None
 boca_pacman = True
 bareta_visible = True
+vidas_pacman = 3
+iconos_vidas_id = []
 
 #///marcador///
 margen_arriba = 60
 
 
 ancho_canvas = len(matriz_pacman[0]) *size_celda
-alto_canvas = (len(matriz_pacman) * size_celda) + margen_arriba
+alto_canvas = (len(matriz_pacman) * size_celda) + margen_arriba + 40
 
 #///puntos///
 mapa_ids_bolitas = {}
@@ -92,7 +97,7 @@ blinky_pupula_right_id= None
 blinky_pupila_left_id = None
 blinky_ojo_right_id = None
 blinky_ojo_left_id = None
-blinky_afuera = False
+blinky_afuera = True
 
 pinky_fila =  14
 pinky_col =14
@@ -136,6 +141,20 @@ clyde_pupila_right_id = None
 
 pausado = False
 
+def win():
+    global juego_activo
+    
+    if vidas_pacman <= 0:
+        juego_activo = False
+        
+        print("game over")
+        
+        return
+    if len(mapa_ids_bolitas) == 0:
+        juego_activo =False
+        print("yujuu")
+        
+        return
 def mapa_pacman():
     
     grosor_borde = 3
@@ -262,6 +281,8 @@ def mover_pacman():
             
             ghost_busters()
             
+            win()
+            
             if pacman_dx != 0 or pacman_dy != 0:
                 #abre y cierra boca
                 if boca_pacman:
@@ -313,8 +334,61 @@ def modo_frightened():
     canvas.itemconfig(clyde_pupila_right_id, fill= "#0000bb", outline="#0000bb")
     
     ventana.after(7000, abstinencia)
-    
 
+def crear_vida ():
+    global iconos_vidas_id
+    suelo_y = (len(matriz_pacman) * size_celda) + margen_arriba + 10
+    
+    for i in range (vidas_pacman - 1):
+        pos_x = 40 + (i * 25)
+        
+        id_vida = canvas.create_arc(
+            pos_x, suelo_y, pos_x + 16, suelo_y + 16,
+            fill= "yellow",
+            outline="yellow",
+            start= 210,
+            extent= 300,
+            style= "pieslice"
+        )
+        iconos_vidas_id.append(id_vida)
+
+
+def morido():
+    global vidas_pacman, pacman_fila, pacman_col, pacman_dx, pacman_dy
+    global blinky_fila, blinky_col, blinky_afuera, pinky_fila, pinky_col, pinky_afuera
+    global inky_fila, inky_col, inky_afuera, clyde_fila, clyde_col, clyde_afuera
+    
+    if not juego_activo or modo_fantasma == "frightened":
+        return
+    
+    fantasmas = [
+        (blinky_fila, blinky_col, blinky_muerto),
+        (pinky_fila, pinky_col, pinky_muerto),
+        (inky_fila, inky_col, inky_muerto),
+        (clyde_fila, clyde_col, clyde_muerto)
+    ]
+    for ff, cf, esta_morido in fantasmas:
+        if pacman_fila == ff and pacman_col == cf and not esta_morido:
+            vidas_pacman -= 1
+            
+            if len(iconos_vidas_id) > 0:
+                ultimo_icono = iconos_vidas_id.pop()
+                canvas.delete(ultimo_icono)
+            
+            win()
+            
+            if juego_activo:
+                pacman_fila = 23
+                pacman_col  =  13
+                pacman_dx = 0
+                pacman_dy = 0
+                
+                blinky_fila, blinky_col, blinky_afuera = 11, 13, False
+                pinky_fila, pinky_col, pinky_afuera = 14, 14, False
+                inky_fila, inky_col, inky_afuera = 14, 12, False
+                clyde_fila, clyde_col, clyde_afuera = 14, 15, False
+            return
+    
 def abstinencia():
     global modo_fantasma, modo_anterior
     
@@ -367,6 +441,7 @@ def wakawaka ():
     matriz_pacman[pacman_fila][pacman_col] = 0
     
     canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
+    win()
 
 def crear_score():
     global score_texto_id
@@ -441,7 +516,7 @@ def ghost_busters():
         canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")  
         print("🎯 ¡Blinky devorado! Sus ojos corren a la casa.")
         
-    elif pacman_fila == pinky_fila and pacman_col == pinky_col and not pinky_muerto:
+    if pacman_fila == pinky_fila and pacman_col == pinky_col and not pinky_muerto:
         puntuacion += 200
         pinky_muerto = True
         pinky_dx, pinky_dy = 0, 0
@@ -451,7 +526,7 @@ def ghost_busters():
         canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
         print("🎯 ¡Pinky devorada! Sus ojos corren a la casa.")
         
-    elif pacman_fila == inky_fila and pacman_col == inky_col and not inky_muerto:
+    if pacman_fila == inky_fila and pacman_col == inky_col and not inky_muerto:
         puntuacion += 200
         inky_muerto = True
         inky_dx, inky_dy = 0, 0
@@ -461,7 +536,7 @@ def ghost_busters():
         canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
         print("🎯 ¡Inky devorado! Sus ojos corren a la casa.")
         
-    elif pacman_fila == clyde_fila and pacman_col == clyde_col and not clyde_muerto:
+    if pacman_fila == clyde_fila and pacman_col == clyde_col and not clyde_muerto:
         puntuacion += 200
         clyde_muerto = True
         clyde_dx, clyde_dy = 0, 0
@@ -529,11 +604,13 @@ def crear_blinky():
 def mover_blinky ():
     global blinky_fila, blinky_col, blinky_dx, blinky_dy, blinky_afuera
     global modo_fantasma, blinky_perrito, blinky_muerto
+    if not juego_activo: return
+    
     if blinky_perrito > 0:
         blinky_perrito -= 1
         ventana.after(200, mover_blinky)
         return
-    if blinky_fila >= 12 and (blinky_muerto or not blinky_afuera):
+    if blinky_fila >= 12 and not blinky_afuera:
         if blinky_col < 13:
             blinky_dx = 1; blinky_dy = 0
         elif blinky_col > 14:
@@ -595,13 +672,15 @@ def mover_blinky ():
     ##MOVIMIENTO
     nueva_fila = blinky_fila + blinky_dy
     nueva_col = blinky_col + blinky_dx
+    
     ancho_matriz = len(matriz_pacman[0])
     if nueva_col < 0:
         nueva_col = ancho_matriz -1
     elif nueva_col >= ancho_matriz:
         nueva_col = 0
     if 0 <= nueva_fila < len(matriz_pacman) and 0 <=nueva_col <len(matriz_pacman[0]):
-        if matriz_pacman[nueva_fila][nueva_col] != 1:
+        if matriz_pacman[nueva_fila][nueva_col] != 1 and (matriz_pacman[nueva_fila][nueva_col]  
+        != 4 or not blinky_afuera):
             blinky_fila = nueva_fila
             blinky_col =nueva_col
                 
@@ -633,14 +712,16 @@ def mover_blinky ():
     ghost_busters()
     if blinky_muerto and blinky_fila == 11 and blinky_col == 13:
         blinky_fila = 14
-        blinky_col = 13
-    if blinky_muerto and blinky_fila == 14 and blinky_col == 13:
+        blinky_col = 11
+    elif blinky_muerto and blinky_fila == 14 and blinky_col == 11:
         blinky_muerto = False
         blinky_afuera = False
-        blinky_perrito = 15
+        blinky_perrito = 10
         canvas.itemconfig(blinky_id, fill="red", outline="red")
         canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
+    
+    win()
     velocidad_actual = 80 if blinky_muerto else 200
     ventana.after(velocidad_actual, mover_blinky)
     
@@ -737,6 +818,8 @@ def mover_pinky():
     global pinky_fila, pinky_col, pinky_dx, pinky_dy
     global modo_fantasma, pinky_afuera, pinky_perrito, pinky_muerto
     
+    if not juego_activo: return
+    
     if pinky_perrito > 0:
         pinky_perrito -= 1
         ventana.after(200, mover_pinky)
@@ -772,14 +855,14 @@ def mover_pinky():
         direcciones_posibles = [(-1, 0), (1, 0), (0, -1), (0, 1)] 
         
         for dx, dy in direcciones_posibles:
-            if dx == -pinky_dx and dy == -pinky_dy and not pinky_muerto:
+            if dx == -pinky_dx and dy == -pinky_dy:
                 continue
             test_f = pinky_fila + dy
             test_c = pinky_col + dx
             
             if 0 <= test_f < len(matriz_pacman) and 0 <= test_c <len(matriz_pacman[0]):
                 casilla_evaluada = matriz_pacman[test_f][test_c]
-                if casilla_evaluada != 1 and (casilla_evaluada != 4 or pinky_muerto):
+                if casilla_evaluada != 1 and casilla_evaluada != 4:
                     opcionesd_giro.append((dx, dy))
                     
         if len(opcionesd_giro)> 0:
@@ -851,8 +934,8 @@ def mover_pinky():
     ghost_busters() 
     if pinky_muerto and pinky_fila == 11 and pinky_col == 13:
         pinky_fila = 14  # Entra al centro de la jaula
-        pinky_col = 14
-    if pinky_muerto and pinky_fila == 14 and pinky_col == 14:
+        pinky_col = 16
+    elif pinky_muerto and pinky_fila == 14 and pinky_col == 16:
         pinky_muerto = False
 
         pinky_afuera = False  # Para que vuelva a ejecutar su salida forzada hacia arriba
@@ -860,7 +943,8 @@ def mover_pinky():
         canvas.itemconfig(pinky_id, fill="#FFB8FF", outline="#FFB8FF")
         canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
-        
+    
+    win()
     velocidad_actual = 80 if pinky_muerto else 200
     ventana.after(velocidad_actual, mover_pinky)
             
@@ -970,6 +1054,8 @@ def mover_inky ():
     global inky_fila, inky_col, inky_dx, inky_dy
     global modo_fantasma, inky_afuera, inky_perrito, inky_muerto
     
+    if not juego_activo: return
+    
     if inky_perrito > 0:
         inky_perrito -= 1
         ventana.after(200, mover_inky)
@@ -1074,11 +1160,12 @@ def mover_inky ():
     elif inky_muerto and inky_fila == 14 and inky_col == 12:
         inky_muerto = False
         inky_afuera = False
-        inky_perrito = 15
+        inky_perrito = 10
         canvas.itemconfig(inky_id, fill="#00FFFF", outline="#00FFFF")
         canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
-        
+    
+    win()   
     velocidad_actual = 80 if inky_muerto else 200
     ventana.after(velocidad_actual, mover_inky)
     
@@ -1102,6 +1189,8 @@ def crear_clyde ():
 def mover_clyde():
     global clyde_fila, clyde_col, clyde_dx, clyde_dy, modo_fantasma 
     global clyde_afuera, clyde_perrito, clyde_muerto
+    
+    if not juego_activo: return
     
     if clyde_perrito > 0:
         clyde_perrito -= 1
@@ -1219,7 +1308,8 @@ def mover_clyde():
         canvas.itemconfig(clyde_id, fill="#FFB852", outline="#FFB852")
         canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
-        
+    
+    win()   
     velocidad_actual = 80 if clyde_muerto else 200
     ventana.after(velocidad_actual, mover_clyde)        
             
@@ -1255,6 +1345,7 @@ def motor_pacman ():
     crear_pinky()
     crear_inky()
     crear_clyde()
+    crear_vida()
     
     ventana.bind("<KeyPress>", teclado_pacman)
     
