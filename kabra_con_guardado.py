@@ -504,7 +504,7 @@ def mover_jugador(pasos, cambiar_turno=True):
 
         
         # Lista con tus minijuegos disponibles
-        lista_minijuegos = ["tombof.py"]
+        lista_minijuegos = ["tombof.py","snake.py","PAC-mAN.py","undyne.py"]
         minijuego_elegido = rd.choice(lista_minijuegos)
         
         ruta_script = os.path.join(os.path.dirname(__file__), minijuego_elegido)
