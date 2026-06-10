@@ -1,6 +1,7 @@
 import random as rd
 import turtle as tl
 from playsound3 import playsound as ps
+import sys
 
 lista_bloques = []
 lista_pinchos = []
@@ -230,7 +231,6 @@ def mapa1():
         f.fd(distancia)
         lista_bloques.append(f)
         distancia = distancia + 64
-    
     #===== cubo pt 14 ======#
     distancia = 0
     tung3.fd(896)
@@ -278,16 +278,14 @@ def mapa1():
 
     #====== cul0wo  18====#
     distancia = 0
-    tung5.fd(384)    
+    tung5.fd(384)
     tung5.seth(0)
     for f in range(3):
         f = tung5.clone()
         f.fd(distancia)
         distancia = distancia + 64
         lista_bloques.append(f)
-
     # ----- declaracion pinchos-------#
-
     #===== pincho pt 1  ======#
     pincho = tl.Turtle()
     pincho.shape("pinchos.gif")
@@ -298,14 +296,14 @@ def mapa1():
     pincho.seth(270)
     pincho.fd(64)
     pincho.seth(0)
-    
+
     #===== pincho pt 2  ======#
     p = pincho.clone()
     lista_pinchos.append(p)
     pincho.bk(64)
     p2 = pincho.clone()
     lista_pinchos.append(p2)
-    
+
     #===== pincho pt 3  ======#
     pincho.goto(-128,128)
     pincho.seth(0)
@@ -315,7 +313,7 @@ def mapa1():
         p.fd(distance)
         distance = distance + 64
         lista_pinchos.append(p)
-    
+
     #===== pincho pt 4 ======#
     piji = pincho.clone()
     piji.goto(384,320)
@@ -451,13 +449,15 @@ lapiz.pencolor(0,0,0)
 
 #------ funcion de movimineto y colision-----3
 def avanzar():
-     for pichas in lista_pinchos:
+    for pichas in lista_pinchos:
         if prota.distance(pichas) < 0.5:
             prota.shape("prota muerto.gif")
             lapiz.clear()
+            print("PERDIO")
+            sys.stdout.flush()
             ventana.ontimer(ventana.bye, 600)
             return
-     for bloques in lista_bloques:
+    for bloques in lista_bloques:
         if prota.distance(bloques) < 0.5:
             ps("crash.wav", block = False)
             prota.bk(64)
@@ -465,40 +465,47 @@ def avanzar():
             lapiz.clear()
             prota.shape("prota.gif")
             return
-     for bloquesv in lista_bloques_v:
-         if prota.distance(bloquesv) < 0.5 and bloques_v_estado == True:
-             prota.bk(64)
-             lapiz.bk(64)
-             lapiz.clear()
-             prota.shape("prota.gif")
-             return
-     for pinchosv in lista_pinchos_vn:
-         if prota.distance(pinchosv) < 0.5 and pinchos_vn_estado == True:
-             prota.shape("prota muerto.gif")
-             lapiz.clear()
-             ventana.ontimer(ventana.bye, 600)
-             return
+    for bloquesv in lista_bloques_v:
+        if prota.distance(bloquesv) < 0.5 and bloques_v_estado == True:
+            prota.bk(64)
+            lapiz.bk(64)
+            lapiz.clear()
+            prota.shape("prota.gif")
+            return
+    for pinchosv in lista_pinchos_vn:
+        if prota.distance(pinchosv) < 0.5 and pinchos_vn_estado == True:
+            prota.shape("prota muerto.gif")
+            lapiz.clear()
+            print("PERDIO")
+            sys.stdout.flush()
+            ventana.ontimer(ventana.bye, 600)
+            return
          
-     for pinchosb in lista_pinchos_vb:
-         if prota.distance(pinchosb) < 0.5 and pinchos_vb_estado == True:
-             prota.shape("prota muerto.gif")
-             lapiz.clear()
-             ventana.ontimer(ventana.bye, 600)
-             return
-         elif prota.distance(pinchosb) < 0.5 and pinchos_vb_estado == False:
-              ps("crash.wav", block = False)
-              prota.bk(64)
-              lapiz.bk(64)
-              lapiz.clear()
-              prota.shape("prota.gif")
-              return
+    for pinchosb in lista_pinchos_vb:
+        if prota.distance(pinchosb) < 0.5 and pinchos_vb_estado == True:
+            prota.shape("prota muerto.gif")
+            lapiz.clear()
+            print("PERDIO")
+            sys.stdout.flush()
+            ventana.ontimer(ventana.bye, 600)
+            return
+        elif prota.distance(pinchosb) < 0.5 and pinchos_vb_estado == False:
+            ps("crash.wav", block = False)
+            prota.bk(64)
+            lapiz.bk(64)
+            lapiz.clear()
+            prota.shape("prota.gif")
+            return
     
 
-     if prota.distance(meta) < 0.5:
-         ventana.ontimer(ventana.bye, 750)
-     prota.fd(64)
-     lapiz.fd(64)
-     avanzar()
+    if prota.distance(meta) < 0.5:
+            print("GANO")
+            sys.stdout.flush()
+            ventana.ontimer(ventana.bye, 750)
+    prota.fd(64)
+    lapiz.fd(64)
+    
+    avanzar()
 
 
 

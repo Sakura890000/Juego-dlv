@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
-import random 
+import random
 from PIL import Image, ImageTk
 import os
 import subprocess
 import sys
 from guardar_juego import guardar_partida, cargar_partida, listar_partidas_guardadas, eliminar_partida
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ventana = tk.Tk()
 ventana.title("Silence into the Cave")
@@ -13,11 +15,16 @@ ventana.geometry("700x700")
 ventana.configure(background="black")
 ventana.resizable(False, False)
 
-ventana.iconbitmap("Ico.ico")
+icon_path = os.path.join(BASE_DIR, "Ico.ico")
+if os.path.exists(icon_path):
+    ventana.iconbitmap(icon_path)
 
-pil_imagen = Image.open("titulo.jpg")
-imagen_tk = ImageTk.PhotoImage(pil_imagen)
-label_imagen = tk.Label(ventana, image=imagen_tk, bg="black").pack()
+try:
+    pil_imagen = Image.open(os.path.join(BASE_DIR, "titulo.jpg"))
+    imagen_tk = ImageTk.PhotoImage(pil_imagen)
+    tk.Label(ventana, image=imagen_tk, bg="black").pack()
+except Exception:
+    tk.Label(ventana, text="Silence into the Cave", fg="white", bg="black", font=("Arial", 24, "bold")).pack(pady=50)
 
 def inicio():
     ventana.withdraw()
@@ -74,7 +81,7 @@ def creditos():
 
     
     Desarrollado por:
-    Esteban martines como gay
+    Esteban Martines como gay
 
 
     
@@ -82,11 +89,11 @@ def creditos():
 
 
 
-    Juan Pablo como el Furry Lover
+    Juan Pablo como el Furry/Femboy Lover
 
 
 
-    Juan como Juan
+    Juan como Foyabuelas
 
 
 
@@ -100,7 +107,7 @@ def creditos():
 
 
 
-    Con Cariño para 
+    Con Cariño para Mateito Mateoso
     
 
 
@@ -137,8 +144,8 @@ def atras():
     def mover_salir(evento = None):
         alto_boton = boton_salir.winfo_height()
         ancho_boton = boton_salir.winfo_width()
-        x = random.randint(0, 700 - ancho_boton)
-        y = random.randint(0, 700 - alto_boton)
+        x = random.randint(0, 1080 - ancho_boton)
+        y = random.randint(0, 720 - alto_boton)
         boton_salir.place(x=x, y=y)
 
     boton_salir.place(x=300, y=300)
@@ -147,7 +154,7 @@ def atras():
     def volver():
         cecil.destroy()
         ventana.deiconify()
-    tk.Button(cecil, text="volver", width=boton_width, height=boton_height, command=volver).pack()
+    tk.Button(cecil, text="volver", width=boton_width, height=boton_height, command=volver).pack(pady=10)
    
 
 

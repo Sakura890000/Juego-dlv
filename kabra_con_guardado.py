@@ -162,6 +162,7 @@ inizio="assets/beacon.gif"
 pantalla = tr.Screen()
 pantalla.tracer(0)
 
+
 # Registrar sprites
 pantalla.register_shape(luck)
 pantalla.register_shape(portal)
@@ -213,23 +214,6 @@ CAMINO_CASILLAS = [
     (16,18),(17,18),(17,19)
 ]
 
-# --- DIBUJANTE DE CUADRÍCULA ---
-dibujante = tr.Turtle()
-dibujante.hideturtle()
-dibujante.speed(0)
-dibujante.color("black")
-
-for x in range(inicioX, finX + 1, casillaSize):
-    dibujante.penup()
-    dibujante.goto(x, inicioY)
-    dibujante.pendown()
-    dibujante.goto(x, finY)
-
-for y in range(inicioY, finY + 1, casillaSize):
-    dibujante.penup()
-    dibujante.goto(inicioX, y)
-    dibujante.pendown()
-    dibujante.goto(finX, y)
 
 # --- GENERACIÓN VISUAL DEL TABLERO ---
 baldosas_pasto = {}
@@ -255,7 +239,7 @@ for i in range(TableroSizeX):
 escritor_alertas = tr.Turtle()
 escritor_alertas.hideturtle()
 escritor_alertas.penup()
-escritor_alertas.color("orange")
+escritor_alertas.color("#969696")
 escritor_alertas.goto(0, 50)
 
 alertas_lucky = tr.Turtle()
@@ -265,7 +249,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 12 
+CANTIDAD_MINIJUEGOS = 80
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -488,8 +472,6 @@ def recrear_tokens():
     posiciones["J2"]["turtle"] = jugador2
 
 
-
-
 def mover_jugador(pasos, cambiar_turno=True):
     global turno_actual, P1, P2, posiciones
     jugador = posiciones[turno_actual]
@@ -519,10 +501,15 @@ def mover_jugador(pasos, cambiar_turno=True):
                 ws.PlaySound(ruta_sonido, ws.SND_FILENAME | ws.SND_ASYNC)
             except:
                 pass
-        # Lanzar minijuego en proceso separado (archivo minijuego_turtle.py)
-        ruta_script = os.path.join(os.path.dirname(__file__), "undyne.py")
+
+        
+        # Lista con tus minijuegos disponibles
+        lista_minijuegos = ["tombof.py"]
+        minijuego_elegido = rd.choice(lista_minijuegos)
+        
+        ruta_script = os.path.join(os.path.dirname(__file__), minijuego_elegido)
         try:
-            # Ejecuta el script y captura la salida de la consola (stdout)
+            # Ejecuta el script aleatorio y captura la salida de la consola (stdout)
             resultado = subprocess.run(
                 [sys.executable, ruta_script], 
                 capture_output=True, 
@@ -533,42 +520,42 @@ def mover_jugador(pasos, cambiar_turno=True):
             respuesta = resultado.stdout.strip()
             
             # Modificar la variable P1 según lo que pasó en el minijuego
-            if turno_actual == "J1":
-                player = "j1"
-            else:
-                player = "j2"
+            player = "j1" if turno_actual == "J1" else "j2"
 
-            match player:
-                case "j1":
-                    if respuesta == "GANO":
-                        print("registrado")
-                        mover_jugador(3)  # Avanza 3 casillas extra
-                        print(f"¡{turno_actual} ganó el minijuego! P1 ahora vale: {P1}")
-                    elif respuesta == "PERDIO":
-                        mover_jugador(-3)  # Retrocede 3 casillas
-                        print(f"{turno_actual} perdió el minijuego. P1 ahora vale: {P1}")
+            # Match moderno evaluando jugador y respuesta al mismo tiempo
+            match respuesta:
+                case "GANO":
+                    print("registrado")
+                    P1 += 1
+                    print(f"¡Ganaste el minijuego! P1 ahora vale: {P1}")
+                    mover_jugador(3)
+
+                case "PERDIO":
+                    print("registradoP")
+                    P1 -= 1
+                    mover_jugador(-3)  # Retrocede 3 casillas
+                    print(f"Perdiste el minijuego. P1 ahora vale: {P1}")
                 
-                case "j2":
-                    if respuesta == "GANO":
-                        mover_jugador(3)  # Avanza 3 casillas extra
-                        print(f"¡{turno_actual} ganó el minijuego! P2 ahora vale: {P2}")
-                    elif respuesta == "PERDIO":
-                        mover_jugador(-3)  # Retrocede 3 casillas
-                        print(f"{turno_actual} perdió el minijuego. P2 ahora vale: {P2}")
-                
+                case _:
+                    print(f"Salida inesperada del minijuego: {respuesta}")
             puntos_label1.config(text=f"Puntos J1: {P1}")
             puntos_label2.config(text=f"Puntos J2: {P2}")
         except Exception as err:
             print("No se pudo iniciar o procesar el minijuego:", err)
-
     if pasos != 0 and coordenada_logica in casillas_trampa:
+
+#alertas
+        escritor_alertas.color("#531313")
         escritor_alertas.write(f"¡{turno_actual} CAYÓ EN UN SOUL!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, escritor_alertas.clear)
         print(f"¡OH NO! {turno_actual} cayó en un Soul. ¡Perdiste un turno!")
         label_dado.config(text=f"¡{turno_actual} cayó en Soul!\nPerdiste un turno")
-        jugador["pierde_turno"] = True
+        alertas_lucky.color("#532313")
         alertas_lucky.write(f"¡{turno_actual} PERDIÓ UN TURNO!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, alertas_lucky.clear)
+
+        jugador["pierde_turno"] = True
+
         ruta_sonido = os.path.join(os.path.dirname(__file__), "Bruh.wav")
     
         if os.path.exists(ruta_sonido):
@@ -586,14 +573,17 @@ def mover_jugador(pasos, cambiar_turno=True):
         jugador["turtle"].goto(pixel_x, pixel_y)
         pantalla.update()
 
+        escritor_alertas.color("#969696")
         escritor_alertas.write(f"¡{turno_actual} ENCONTRÓ UN LUCKY!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, escritor_alertas.clear)
         print(f"¡UY! {turno_actual} encontró un Lucky. ¡Avanza o retrocede 2 casillas extra!")
         label_dado.config(text=f"¡{turno_actual} encontró un Lucky!\nAvanza o retrocede 2 casillas extra")
         opcion = rd.choice(["avanzar", "retroceder"])
         if opcion == "avanzar":
+            alertas_lucky.color="#494949"
             alertas_lucky.write(f"¡{turno_actual} eligió avanzar!", align="center", font=("Arial", 24, "bold"))
         else:
+            alertas_lucky.color="#494949"
             alertas_lucky.write(f"¡{turno_actual} eligió retroceder!", align="center", font=("Arial", 24, "bold"))
         ventana_dado.after(2000, alertas_lucky.clear)
 
