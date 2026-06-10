@@ -1,7 +1,7 @@
 """PAC-MAN"""
 
 import tkinter as tk
-import turtle as tr
+
 import random
 
 ventana =tk.Tk()
@@ -86,15 +86,20 @@ blinky_col = 13
 blinky_id = None
 blinky_dx = -1
 blinky_dy = 0
+blinky_perrito = 0
+blinky_muerto = False
 blinky_pupula_right_id= None
 blinky_pupila_left_id = None
 blinky_ojo_right_id = None
 blinky_ojo_left_id = None
+blinky_afuera = False
 
 pinky_fila =  14
 pinky_col =14
 pinky_dx = 0
 pinky_dy = -1
+pinky_perrito = 0
+pinky_muerto = False
 pinky_id = None
 pinky_pupula_right_id= None
 pinky_pupila_left_id = None
@@ -106,6 +111,8 @@ inky_fila = 14
 inky_col = 12
 inky_dx = 0
 inky_dy = -1
+inky_perrito = 0
+inky_muerto = False
 inky_afuera = False
 inky_id = None
 inky_ojo_left_id = None
@@ -117,6 +124,8 @@ clyde_fila = 14
 clyde_col = 15
 clyde_dx = 0
 clyde_dy = -1
+clyde_perrito = 0
+clyde_muerto = False
 clyde_afuera = False
 clyde_id = None
 clyde_ojo_left_id = None
@@ -124,8 +133,12 @@ clyde_ojo_right_id = None
 clyde_pupila_left_id = None
 clyde_pupila_right_id = None
 
-def mapa_pacman():
 
+pausado = False
+
+def mapa_pacman():
+    
+    grosor_borde = 3
     for fila in range(len(matriz_pacman)):
         for col in range(len(matriz_pacman[fila])):
             
@@ -139,8 +152,7 @@ def mapa_pacman():
             if tipo in [0, 2, 3, 4]:
                 canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="")
         
-            cx = x1 + (size_celda // 2)
-            cy = y1 + (size_celda // 2)
+
             
             if tipo == 1:
                 grosor_borde = 2
@@ -150,8 +162,10 @@ def mapa_pacman():
                     x2 - grosor_borde, 
                     y2 - grosor_borde, 
                     fill="black", 
-                    outline=""
+                    outline =""
                 )
+            cx = x1 + (size_celda // 2)
+            cy = y1 + (size_celda // 2)
             
             if tipo == 2:
                 radio = 2
@@ -245,6 +259,9 @@ def mover_pacman():
             
             #HAce-- wakawaka--//
             wakawaka()
+            
+            ghost_busters()
+            
             if pacman_dx != 0 or pacman_dy != 0:
                 #abre y cierra boca
                 if boca_pacman:
@@ -305,25 +322,26 @@ def abstinencia():
         return
     
     modo_fantasma = modo_anterior
-    print("los fastasmas estan en abstinencia y periguen la keta que se metio pacman")
+    print("⚠️ ¡los fastasmas estan en abstinencia y periguen la keta que se metio pacman!")
+    if not blinky_muerto:
+        canvas.itemconfig(blinky_id, fill="red", outline="red")
+        canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
     
-    canvas.itemconfig(blinky_id, fill="red", outline="red")
-    canvas.itemconfig(pinky_id, fill="#FFB8FF", outline="#FFB8FF")
-    canvas.itemconfig(inky_id, fill="#00FFFF", outline="#00FFFF")
-    canvas.itemconfig(clyde_id, fill="#FFB852", outline="#FFB852")
-    
-    canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
-    canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
-    
-    canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
-    canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
-    
-    canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
-    canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
-    
-    canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
-    canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
+    if not pinky_muerto:
+        canvas.itemconfig(pinky_id, fill="#FFB8FF", outline="#FFB8FF")
+        canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
 
+    if not inky_muerto:
+        canvas.itemconfig(inky_id, fill="#00FFFF", outline="#00FFFF")
+        canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
+    
+    if not clyde_muerto:
+        canvas.itemconfig(clyde_id, fill="#FFB852", outline="#FFB852")
+        canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
 
 def wakawaka ():
     global puntuacion
@@ -383,7 +401,7 @@ def crear_score():
         text= "5000",
         fill= "white",
         font= ("Courier", 16, "bold"),
-        ancho= "n"
+        anchor= "n"
     )
     
 def viva_bazuco ():
@@ -403,6 +421,56 @@ def viva_bazuco ():
     
     ventana.after(200, viva_bazuco)
     
+def ghost_busters():
+    global puntuacion, modo_fantasma
+    global blinky_fila, blinky_col, blinky_muerto, blinky_dx, blinky_dy, blinky_perrito
+    global pinky_fila, pinky_col, pinky_muerto, pinky_dx, pinky_dy, pinky_perrito, pinky_afuera
+    global inky_fila, inky_col, inky_muerto, inky_dx, inky_dy, inky_perrito, inky_afuera
+    global clyde_fila, clyde_col, clyde_muerto, clyde_dx, clyde_dy, clyde_perrito, clyde_afuera
+    
+    if modo_fantasma != "frightened":
+        return
+    
+    if pacman_fila == blinky_fila and pacman_col == blinky_col and not blinky_muerto:
+        puntuacion += 200
+        blinky_muerto = True
+        blinky_dx, blinky_dy = 0, 0
+        # Borramos el cuerpo rojo/azul (fill="") dejando solo los ojos blancos y pupilas
+        canvas.itemconfig(blinky_id, fill="", outline="")
+        canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")  
+        print("🎯 ¡Blinky devorado! Sus ojos corren a la casa.")
+        
+    elif pacman_fila == pinky_fila and pacman_col == pinky_col and not pinky_muerto:
+        puntuacion += 200
+        pinky_muerto = True
+        pinky_dx, pinky_dy = 0, 0
+        canvas.itemconfig(pinky_id, fill="", outline="")
+        canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
+        canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
+        print("🎯 ¡Pinky devorada! Sus ojos corren a la casa.")
+        
+    elif pacman_fila == inky_fila and pacman_col == inky_col and not inky_muerto:
+        puntuacion += 200
+        inky_muerto = True
+        inky_dx, inky_dy = 0, 0
+        canvas.itemconfig(inky_id, fill="", outline="")
+        canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
+        canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
+        print("🎯 ¡Inky devorado! Sus ojos corren a la casa.")
+        
+    elif pacman_fila == clyde_fila and pacman_col == clyde_col and not clyde_muerto:
+        puntuacion += 200
+        clyde_muerto = True
+        clyde_dx, clyde_dy = 0, 0
+        canvas.itemconfig(clyde_id, fill="", outline="")
+        canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
+        canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
+        print("🎯 ¡Clyde devorado! Sus ojos corren a la casa.")
+        
 #??//funciones de fastasmas///??
 
 def reloj_modo_ia():
@@ -459,100 +527,122 @@ def crear_blinky():
     blinky_pupula_right_id = canvas.create_oval(mx2 - 7, my1 + 6, mx2 - 4, my1 + 9, fill="blue", outline="blue")
     
 def mover_blinky ():
-    global blinky_fila, blinky_col, blinky_dx, blinky_dy, modo_fantasma
-    target_f = 0
-    target_c = 0
-    
-    if modo_fantasma == "chase":
-        target_f = pacman_fila
-        target_c = pacman_col
-    elif modo_fantasma == "scatter":
-        target_f = -2
-        target_c =25
-        
-    opcionesd_giro = []
-    direcciones_posibles = [(-1, 0), (1, 0), (0, -1), (0, 1)] 
-    
-    for dx, dy in direcciones_posibles:
-        if dx ==  -blinky_dx and dy == -blinky_dy:
-            continue
-        test_f = blinky_fila + dy
-        test_c = blinky_col + dx
-        
-        if 0 <= test_f <len(matriz_pacman) and 0 <= test_c < len(matriz_pacman[0]):
-            if matriz_pacman[test_f][test_c] != 1 and matriz_pacman[test_f][test_c] != 4:
-                opcionesd_giro.append((dx, dy))
-                
-    if len(opcionesd_giro) > 0:
-        f_recto = blinky_fila +blinky_dy
-        c_recto = blinky_col + blinky_dx
-        choque = True
-        if 0 <= f_recto < len(matriz_pacman) and 0 <= c_recto < len(matriz_pacman[0]):
-            if matriz_pacman[f_recto][c_recto] != 1:
-                choque = False
-        if len(opcionesd_giro) > 1 or choque:
-            if modo_fantasma == "frightened":
-                blinky_dx, blinky_dy = random.choice(opcionesd_giro)
-            else:
-                mejor_dx, mejor_dy = blinky_dx, blinky_dy
-                distancia_min = float('inf')
-                
-                for dx, dy in opcionesd_giro:
-                    f_futuro = blinky_fila + dy
-                    c_futuro = blinky_col + dx
-                    
-                    dist_cuadrado = (f_futuro - target_f)** 2 +(c_futuro - target_c)** 2
-                    if dist_cuadrado < distancia_min:
-                        distancia_min =  dist_cuadrado
-                        mejor_dx = dx
-                        mejor_dy= dy
-                
-                blinky_dx = mejor_dx
-                blinky_dy = mejor_dy
-    
+    global blinky_fila, blinky_col, blinky_dx, blinky_dy, blinky_afuera
+    global modo_fantasma, blinky_perrito, blinky_muerto
+    if blinky_perrito > 0:
+        blinky_perrito -= 1
+        ventana.after(200, mover_blinky)
+        return
+    if blinky_fila >= 12 and (blinky_muerto or not blinky_afuera):
+        if blinky_col < 13:
+            blinky_dx = 1; blinky_dy = 0
+        elif blinky_col > 14:
+            blinky_dx = -1; blinky_dy = 0
+        else:
+            blinky_dx = 0; blinky_dy = -1
+    else:
+        blinky_afuera = True
+    if blinky_afuera:
+        target_c = 0
+        target_f = 0
+        if blinky_muerto:
+            target_f = 11
+            target_c = 13
+        elif modo_fantasma == "chase":
+            target_f = pacman_fila
+            target_c = pacman_col
+        elif modo_fantasma == "scatter":
+            target_f = -2
+            target_c =25
+        else:
+            target_f = 0
+            target_c = 0
+        opcionesd_giro = []
+        direcciones_posibles = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for dx, dy in direcciones_posibles:
+            if dx == -blinky_dx and dy == -blinky_dy:
+                continue
+            test_f = blinky_fila + dy
+            test_c = blinky_col + dx
+            
+            if 0 <= test_f <len(matriz_pacman) and 0 <= test_c < len(matriz_pacman[0]):
+                if matriz_pacman[test_f][test_c] != 1 and matriz_pacman[test_f][test_c] != 4:
+                    opcionesd_giro.append((dx, dy))
+        if len(opcionesd_giro) > 0:
+            f_recto = blinky_fila +blinky_dy
+            c_recto = blinky_col + blinky_dx
+            choque = True
+            if 0 <= f_recto < len(matriz_pacman) and 0 <= c_recto <len(matriz_pacman[0]):
+                if matriz_pacman[f_recto][c_recto] != 1:
+                    choque = False
+            if len(opcionesd_giro) > 1 or choque:
+                if modo_fantasma == "frightened" and not blinky_muerto:
+                    blinky_dx, blinky_dy = random.choice(opcionesd_giro)
+                else:
+                    mejor_dx, mejor_dy = blinky_dx, blinky_dy
+                    distancia_min = float('inf')
+                    for dx, dy in opcionesd_giro:
+                        f_futuro = blinky_fila + dy
+                        c_futuro = blinky_col + dx
+                            
+                        dist_cuadrado = (f_futuro - target_f)** 2 +(c_futuro - target_c)** 2
+                        if dist_cuadrado < distancia_min:
+                            distancia_min = dist_cuadrado
+                            mejor_dx = dx
+                            mejor_dy= dy
+                    blinky_dx = mejor_dx
+                    blinky_dy = mejor_dy
     ##MOVIMIENTO
     nueva_fila = blinky_fila + blinky_dy
     nueva_col = blinky_col + blinky_dx
-    
     ancho_matriz = len(matriz_pacman[0])
-    if nueva_col < 0: 
-        nueva_col = ancho_matriz -1 
+    if nueva_col < 0:
+        nueva_col = ancho_matriz -1
     elif nueva_col >= ancho_matriz:
         nueva_col = 0
-        
-    if 0 <= nueva_fila < len(matriz_pacman) and 0 <=nueva_col < len(matriz_pacman[0]):
+    if 0 <= nueva_fila < len(matriz_pacman) and 0 <=nueva_col <len(matriz_pacman[0]):
         if matriz_pacman[nueva_fila][nueva_col] != 1:
-            
             blinky_fila = nueva_fila
             blinky_col =nueva_col
-            
+                
             x1 = blinky_col *size_celda
             y1 = (blinky_fila * size_celda) +margen_arriba
             x2 = x1 + size_celda
             y2 = y1 + size_celda
-            
+
             mx1, my1 = x1 + 2, y1 + 2
             mx2, my2 = x2 - 2, y2 - 2
             ancho_util = mx2 - mx1
+            
             p1_x = mx1 + (ancho_util * 0.25)
             p2_x = mx1 + (ancho_util * 0.5)
             p3_x = mx1 + (ancho_util * 0.75)
+            
             alto_picos_y = my2 - 4
             
             puntos_actualizados = [
-                mx1, my2, mx1, my1 + 8, mx1 + 4, my1 + 2, mx2 - 4, my1 + 2,
-                mx2, my1 + 8, mx2, my2, p3_x, alto_picos_y, p2_x, my2, p1_x, alto_picos_y
-            ]
-            
+                                mx1, my2, mx1, my1 + 8, mx1 + 4, my1 + 2, mx2 - 4, my1 + 2,
+                                mx2, my1 + 8, mx2, my2, p3_x, alto_picos_y, p2_x, my2, p1_x, alto_picos_y
+                            ]
             canvas.coords(blinky_id, puntos_actualizados)
             canvas.coords(blinky_ojo_left_id, mx1 + 2, my1 + 4, mx1 + 7, my1 + 10)
             canvas.coords(blinky_ojo_right_id, mx2 - 7, my1 + 4, mx2 - 2, my1 + 10)
             canvas.coords(blinky_pupila_left_id, mx1 + 4, my1 + 6, mx1 + 6, my1 + 8)
             canvas.coords(blinky_pupula_right_id, mx2 - 6, my1 + 6, mx2 - 4, my1 + 8)
-        
             blinky_ojoalegre()
-                
-    ventana.after(200, mover_blinky)
+    ghost_busters()
+    if blinky_muerto and blinky_fila == 11 and blinky_col == 13:
+        blinky_fila = 14
+        blinky_col = 13
+    if blinky_muerto and blinky_fila == 14 and blinky_col == 13:
+        blinky_muerto = False
+        blinky_afuera = False
+        blinky_perrito = 15
+        canvas.itemconfig(blinky_id, fill="red", outline="red")
+        canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")
+    velocidad_actual = 80 if blinky_muerto else 200
+    ventana.after(velocidad_actual, mover_blinky)
     
 def blinky_ojoalegre():
     
@@ -644,18 +734,34 @@ def crear_pinky():
     pinky_pupula_right_id = canvas.create_oval(mx2 - 7, my1 + 6, mx2 - 4, my1 + 9, fill="blue", outline="blue")
     
 def mover_pinky():
-    global pinky_fila, pinky_col, pinky_dx, pinky_dy, modo_fantasma, pinky_afuera
+    global pinky_fila, pinky_col, pinky_dx, pinky_dy
+    global modo_fantasma, pinky_afuera, pinky_perrito, pinky_muerto
     
-    if pinky_fila > 11 and not pinky_afuera:
-        pinky_dx = 0
-        pinky_dy = -1
+    if pinky_perrito > 0:
+        pinky_perrito -= 1
+        ventana.after(200, mover_pinky)
+        return
+    
+    if pinky_fila >= 12 and not pinky_afuera:
+        if pinky_col < 13:
+            pinky_dx = 1
+            pinky_dy = 0
+        elif pinky_col > 14:
+            pinky_dx = -1
+            pinky_dy =0
+        else:
+            pinky_dx = 0
+            pinky_dy = -1
     else:
         pinky_afuera = True
     if pinky_afuera:
         target_f = 0
         target_c = 0
         
-        if modo_fantasma == "chase":
+        if pinky_muerto:
+            target_f = 11
+            target_c = 13
+        elif modo_fantasma == "chase":
             target_f = pacman_fila +(pacman_dy * 4)
             target_c = pacman_col + (pacman_dx * 4)
         elif modo_fantasma == "scatter":
@@ -666,13 +772,14 @@ def mover_pinky():
         direcciones_posibles = [(-1, 0), (1, 0), (0, -1), (0, 1)] 
         
         for dx, dy in direcciones_posibles:
-            if dx == -pinky_dx and dy == -pinky_dy:
+            if dx == -pinky_dx and dy == -pinky_dy and not pinky_muerto:
                 continue
             test_f = pinky_fila + dy
             test_c = pinky_col + dx
             
             if 0 <= test_f < len(matriz_pacman) and 0 <= test_c <len(matriz_pacman[0]):
-                if matriz_pacman[test_f][test_c] != 1 and matriz_pacman[test_f][ test_c] != 4:
+                casilla_evaluada = matriz_pacman[test_f][test_c]
+                if casilla_evaluada != 1 and (casilla_evaluada != 4 or pinky_muerto):
                     opcionesd_giro.append((dx, dy))
                     
         if len(opcionesd_giro)> 0:
@@ -683,7 +790,7 @@ def mover_pinky():
                 if matriz_pacman[f_recto][c_recto] != 1:
                     choque = False
             if len(opcionesd_giro) > 1 or choque:
-                if modo_fantasma == "frightened":
+                if modo_fantasma == "frightened" and not pinky_muerto:
                     pinky_dx, pinky_dy = random.choice(opcionesd_giro)
                 else: 
                     mejor_dx, mejor_dy = pinky_dx, pinky_dy
@@ -714,7 +821,7 @@ def mover_pinky():
     if 0 <= nueva_fila < len(matriz_pacman) and 0 <= nueva_col < len(matriz_pacman[0]):
         casilla_destino = matriz_pacman[nueva_fila][nueva_col]
         
-        if casilla_destino != 1 and (casilla_destino != 4 or not pinky_afuera):
+        if casilla_destino != 1 and (casilla_destino != 4 or not pinky_afuera or pinky_muerto):
             pinky_fila = nueva_fila
             pinky_col = nueva_col
             
@@ -737,9 +844,25 @@ def mover_pinky():
             canvas.coords(pinky_ojo_right_id, mx2 - 7, my1 + 4, mx2 - 2, my1 + 10)
             canvas.coords(pinky_pupila_left_id, mx1 + 4, my1 + 6, mx1 + 6, my1 + 8)
             canvas.coords(pinky_pupula_right_id, mx2 - 6, my1 + 6, mx2 - 4, my1 + 8)
+    
             
             pinky_ojoalegre()
-    ventana.after(200, mover_pinky)
+    
+    ghost_busters() 
+    if pinky_muerto and pinky_fila == 11 and pinky_col == 13:
+        pinky_fila = 14  # Entra al centro de la jaula
+        pinky_col = 14
+    if pinky_muerto and pinky_fila == 14 and pinky_col == 14:
+        pinky_muerto = False
+
+        pinky_afuera = False  # Para que vuelva a ejecutar su salida forzada hacia arriba
+        pinky_perrito = 15    # 3 segundos en el perrito (castigo)
+        canvas.itemconfig(pinky_id, fill="#FFB8FF", outline="#FFB8FF")
+        canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
+        
+    velocidad_actual = 80 if pinky_muerto else 200
+    ventana.after(velocidad_actual, mover_pinky)
             
 def pinky_ojoalegre():
     
@@ -844,7 +967,13 @@ def inky_ojoalegre():
                    cy + radio_pupila)
     
 def mover_inky ():
-    global inky_fila, inky_col, inky_dx, inky_dy, modo_fantasma, inky_afuera
+    global inky_fila, inky_col, inky_dx, inky_dy
+    global modo_fantasma, inky_afuera, inky_perrito, inky_muerto
+    
+    if inky_perrito > 0:
+        inky_perrito -= 1
+        ventana.after(200, mover_inky)
+        return
     if inky_fila >= 12 and not inky_afuera:
         if inky_col < 13:
             # Si está muy a la izquierda (col 12), camina horizontalmente a la DERECHA hacia el centro
@@ -864,7 +993,11 @@ def mover_inky ():
     if inky_afuera:
         target_f, target_c = 0, 0
         
-        if modo_fantasma == "chase":
+        if inky_muerto:
+            target_f = 11
+            target_c = 13
+            
+        elif modo_fantasma == "chase":
             pivot_f = pacman_fila + (pacman_dy *2)
             pivot_c = pacman_col + (pacman_dx * 2)
             target_f = pivot_f + (pivot_f - blinky_fila)
@@ -887,7 +1020,7 @@ def mover_inky ():
                 if matriz_pacman[f_r][c_r] != 1:
                     choque = False
             if len(opciones) > 1 or choque:
-                if modo_fantasma == "frightened":
+                if modo_fantasma == "frightened" and not inky_muerto:
                     inky_dx, inky_dy = random.choice(opciones)
                 else:
                     mejor_dx, mejor_dy = inky_dx, inky_dy
@@ -933,7 +1066,21 @@ def mover_inky ():
             canvas.coords(inky_pupila_left_id, mx1 + 4, my1 + 6, mx1 + 6, my1 + 8)
             canvas.coords(inky_pupila_right_id, mx2 - 6, my1 + 6, mx2 - 4, my1 + 8)
             inky_ojoalegre()
-    ventana.after(200, mover_inky)
+    
+    ghost_busters()        
+    if inky_muerto and inky_fila == 11 and inky_col == 13:
+        inky_fila = 14
+        inky_col = 12
+    elif inky_muerto and inky_fila == 14 and inky_col == 12:
+        inky_muerto = False
+        inky_afuera = False
+        inky_perrito = 15
+        canvas.itemconfig(inky_id, fill="#00FFFF", outline="#00FFFF")
+        canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
+        
+    velocidad_actual = 80 if inky_muerto else 200
+    ventana.after(velocidad_actual, mover_inky)
     
 
 def crear_clyde ():
@@ -953,7 +1100,14 @@ def crear_clyde ():
     clyde_ojoalegre()
 
 def mover_clyde():
-    global clyde_fila, clyde_col, clyde_dx, clyde_dy, modo_fantasma, clyde_afuera
+    global clyde_fila, clyde_col, clyde_dx, clyde_dy, modo_fantasma 
+    global clyde_afuera, clyde_perrito, clyde_muerto
+    
+    if clyde_perrito > 0:
+        clyde_perrito -= 1
+        ventana.after(200, mover_clyde)
+        return
+    
     if clyde_fila >= 12 and not clyde_afuera:
         if clyde_col > 14:
             # Si está muy a la derecha (col 15), camina horizontalmente a la IZQUIERDA hacia el centro
@@ -974,7 +1128,10 @@ def mover_clyde():
         target_f, target_c = 0, 0
         dist_a_pacman = (clyde_fila - pacman_fila) ** 2 + (clyde_col - pacman_col) ** 2
         
-        if modo_fantasma == "chase":
+        if clyde_muerto:
+            target_c = 13
+            target_f = 11
+        elif modo_fantasma == "chase":
             if dist_a_pacman >  64:
                 target_f = pacman_fila; target_c = pacman_col
             
@@ -1000,7 +1157,7 @@ def mover_clyde():
                 if matriz_pacman[f_r][c_r] != 1:
                     choque = False
             if len(opciones) > 1 or choque:
-                if modo_fantasma == "frightened":
+                if modo_fantasma == "frightened" and not clyde_muerto:
                     clyde_dx, clyde_dy = random.choice(opciones)
                 else:
                     mejor_dx, mejor_dy = clyde_dx, clyde_dy; dist_min = float('inf')
@@ -1050,7 +1207,21 @@ def mover_clyde():
             canvas.coords(clyde_pupula_right_id, mx2 - 6, my1 + 6, mx2 - 4, my1 + 8)
             
             clyde_ojoalegre()
-    ventana.after(200, mover_clyde)        
+    
+    ghost_busters()
+    if clyde_muerto and clyde_fila == 11 and clyde_col == 13:
+        clyde_fila = 14
+        clyde_col = 15
+    elif clyde_muerto and clyde_fila == 14 and clyde_col == 15:
+        clyde_muerto = False
+        clyde_afuera = False
+        clyde_perrito = 15
+        canvas.itemconfig(clyde_id, fill="#FFB852", outline="#FFB852")
+        canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
+        canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
+        
+    velocidad_actual = 80 if clyde_muerto else 200
+    ventana.after(velocidad_actual, mover_clyde)        
             
 
 def clyde_ojoalegre():
