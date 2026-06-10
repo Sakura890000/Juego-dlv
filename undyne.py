@@ -12,7 +12,7 @@ shield_reset = 70
 velocidad_proyectiles = 3
 estadofinal="PERDIO"
 juego_activo = True
-tiempo_restante = 15
+tiempo_restante = 20
 
 ventana = tl.Screen()
 ventana.setup(1200,700)

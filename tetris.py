@@ -14,6 +14,7 @@ beacon = "assets/beacon.gif"
 box = "assets/deepslate.gif"
 soul = "assets/soul.gif"
 luck = "assets/bricks.gif"
+sculk= "assets/sculk.gif"
 
 for asset in [beacon, box, soul, luck]:
     if os.path.exists(asset):
@@ -38,7 +39,7 @@ puntuacionNec = 500
 juego_terminado = False
 
 # --- DEFINICIÓN DE PIEZAS (Tetrominós) ---
-# Representan las coordenadas (X, Y) relativas de cada bloque
+# Representan las coordenadas de cada bloque
 # Cada pieza ahora asocia sus bloques con un asset específico
 PIEZAS = {
     'I': [[(0,0), (1,0), (2,0), (3,0)], beacon], # Beacon
@@ -46,22 +47,22 @@ PIEZAS = {
     'T': [[(1,0), (0,1), (1,1), (2,1)], soul], # Soul
     'S': [[(1,0), (2,0), (0,1), (1,1)], luck], # Luck
     'Z': [[(0,0), (1,0), (1,1), (2,1)], beacon], # Beacon
-    'J': [[(0,0), (0,1), (1,1), (2,1)], box], # Box
+    'J': [[(0,0), (0,1), (1,1), (2,1)], sculk], # Box
     'L': [[(2,0), (0,1), (1,1), (2,1)], soul]  # Soul
 }
 
-# --- TORTUGAS AUXILIARES ---
+# --- TUTUGAS AUXILIARES ---
 pintor = tr.Turtle()  # Dibuja los bloquesde juego
 pintor.hideturtle()
 pintor.speed(0)
 pintor.penup()
 
-marcador = tr.Turtle() # Dibuja los textos
+marcador = tr.Turtle() 
 marcador.hideturtle()
 marcador.color("white")
 marcador.penup()
 
-# Turtle adicional para dibujar el borde
+#dibujar el borde
 borde_pintor = tr.Turtle()
 borde_pintor.hideturtle()
 borde_pintor.penup()
@@ -76,7 +77,7 @@ def dibujar_cuadrado(x, y, asset):
         pintor.shape(asset)
         pintor.stamp()
     else:
-        # Fallback: si el asset no existe, dibuja un cuadrado simple
+        # Fallback
         pintor.pendown()
         pintor.color("gray")
         for _ in range(4):
@@ -88,7 +89,7 @@ def actualizar_pantalla():
     """Redibuja todo el escenario: bordes, bloques fijos y pieza actual"""
     pintor.clearstamps()
     
-    # Dibujar los límites del tablero (Borde gris)
+    # límites del tablero
     borde_pintor.clearstamps()
     borde_pintor.penup()
     borde_pintor.color("#33333d")
@@ -103,18 +104,18 @@ def actualizar_pantalla():
     borde_pintor.pensize(1)
     borde_pintor.penup()
 
-    # Dibujar bloques ya consolidados en el tablero
+    # Dibujar bloques ya consolidados
     for r in range(FILAS):
         for c in range(COLUMNAS):
             if tablero[r][c] != 0:
                 dibujar_cuadrado(c, r, tablero[r][c])
 
-    # Dibujar la pieza que está cayendo actualmente
+    # Dibujar la pieza que está cayendo
     if not juego_terminado:
         for bloque in pieza_actual:
             bx = px_actual + bloque[0]
             by = py_actual + bloque[1]
-            if by < FILAS: # Evita dibujar por encima del tope visual
+            if by < FILAS:
                 dibujar_cuadrado(bx, by, asset_actual)
 
     pantalla.update()
@@ -186,7 +187,7 @@ def fijar_pieza():
         if by < FILAS:
             tablero[by][bx] = asset_actual
 
-    # Limpiar líneas llenas
+    # Limpiar
     lineas_eliminadas = 0
     for r in range(FILAS - 1, -1, -1):
         if 0 not in tablero[r]: # Si la fila no contiene ningún cero, está llena
