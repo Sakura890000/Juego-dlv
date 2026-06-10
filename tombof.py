@@ -9,7 +9,7 @@ lista_bloques_v = []
 lista_pinchos_vn = []
 lista_pinchos_vb = []
 
-
+juego_iniciado = False
 bloques_v_estado = False
 pinchos_vn_estado = False
 pinchos_vb_estado = False
@@ -30,7 +30,29 @@ ventana.bgcolor(0.05,0,0.15)
 ventana.setup(1300,700)
 #fondo arcoiris
 
+def dibujar_cuadro_inicio():
+    # Usamos meta temporalmente para escribir el texto de inicio
+    meta.penup()
+    meta.goto(0, 50)
+    meta.pencolor("white")
+    meta.write("¡BIENVENIDO AL JUEGO!", align="center", font=("Arial", 24, "bold"))
+    
+    meta.goto(0, -20)
+    meta.write("Presiona ENTER para comenzar...", align="center", font=("Arial", 16, "normal"))
+    meta.goto(-256, 64) # Regresa la meta a su posición original de juego
 
+def comenzar_juego():
+    global juego_iniciado
+    if juego_iniciado == False:
+        juego_iniciado = True
+        meta.clear() # Borra el texto de bienvenida que escribió meta
+        
+        # Arranca todo el juego
+        mapa1()
+        ciclo_bloques_v()
+        ciclo_pinchos_vn()
+        ciclo_pinchos_vb()
+        musik_loop()
 def ciclo_bloques_v():
     global bloques_v_estado
     if bloques_v_estado == False:
@@ -422,14 +444,9 @@ meta.penup()
 meta.speed(0)
 meta.goto(-256,64)
 
+dibujar_cuadro_inicio()
 
 
- 
-mapa1()
-
-ciclo_bloques_v()
-ciclo_pinchos_vn()
-ciclo_pinchos_vb()
 #lapiz
 lapiz = tl.Turtle()
 lapiz.width(5)
@@ -569,6 +586,8 @@ def musik_loop():
     ventana.ontimer(musik_loop, 175600)
 musik_loop()
 ventana.listen()
+
+ventana.onkey(comenzar_juego, "Return")     
 
 ventana.onkey(right,"d")
 ventana.onkey(up,"w")
