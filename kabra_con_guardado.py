@@ -105,6 +105,12 @@ INSTRUCCIONES_MINIJUEGOS = {
         "Mueve las piezas con las flechas Izquierda/Derecha, baja con Abajo, y rota con Arriba.\n"
         "Completa líneas horizontales para eliminarlas y sumar puntos.\n"
         "Evita que las piezas lleguen hasta arriba de la pantalla."
+    ),
+    "pacman":(
+        "Pac-Man:\n"
+        "Muevete con las flechitas o con wasd.\n"
+        "Comete todas las bolitas para ganar.\n"
+        "Evita a los fantasmas para que no te cojan.\n"
     )
 }
 
@@ -314,7 +320,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 18
+CANTIDAD_MINIJUEGOS = 90
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -390,7 +396,7 @@ pintor_final.stamp()
 
 
 # --- CAPA DE LUCKY ---
-CANTIDAD_LUCKYS = 20
+CANTIDAD_LUCKYS = 18
 casillas_lucky = set()
 
 pintor_lucky = tr.Turtle()
