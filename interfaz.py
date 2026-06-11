@@ -1,7 +1,9 @@
 import tkinter as tk
-import random 
+import random
 from PIL import Image, ImageTk
 import os
+import subprocess
+import sys
 
 ventana = tk.Tk()
 ventana.title("Silence into the Cave")
@@ -21,19 +23,52 @@ def inicio():
     nueva.title("Menu")
     nueva.geometry("700x700")
     nueva.configure(background="black")
+    nueva.resizable(False, False)
+
+    frame_menu = tk.Frame(nueva, bg="black")
+    frame_menu.place(relx=0.5, rely=0.5, anchor="center")
 
     def nuevojuego():
-        nueva.withdraw()
-        cont = tk.Toplevel()
-        cont.title("Holaaaa")
-        cont.geometry("700x700")
-        cont.configure(background="blue")
-    tk.Button(nueva, text= "Nuevo Juego", command=nuevojuego, font= ("Arial", 16), fg= "white", bg= "#000000", bd=0 ,activebackground="black", activeforeground= "#ffff00").pack()
-        
+        nueva.destroy()
+        ventana.withdraw()
+        cinematica_script = os.path.join(os.path.dirname(__file__), "cinematica al iniciar el juego.py")
+        tablero_script = os.path.join(os.path.dirname(__file__), "kabra_con_guardado.py")
+        try:
+            subprocess.run([sys.executable, cinematica_script], cwd=os.path.dirname(__file__))
+        except Exception as err:
+            print("Error al iniciar la cinematica:", err)
+        try:
+            subprocess.Popen([sys.executable, tablero_script], cwd=os.path.dirname(__file__))
+        except Exception as err:
+            print("Error al abrir el tablero:", err)
+
+    def continuar():
+        nueva.destroy()
+        ventana.withdraw()
+        tablero_script = os.path.join(os.path.dirname(__file__), "kabra_con_guardado.py")
+        try:
+            subprocess.Popen([sys.executable, tablero_script, "--auto-load"], cwd=os.path.dirname(__file__))
+        except Exception as err:
+            print("Error al continuar la partida:", err)
+
+    boton_nuevo = tk.Button(frame_menu, text="Nuevo Juego", command=nuevojuego,
+                             font=("Arial", 18), fg="white", bg="#000000", bd=0,
+                             activebackground="black", activeforeground="#ffff00")
+    boton_nuevo.pack(pady=12, fill="x", padx=40)
+
+    boton_continuar = tk.Button(frame_menu, text="Continuar", command=continuar,
+                                font=("Arial", 18), fg="white", bg="#000000", bd=0,
+                                activebackground="black", activeforeground="#ffff00")
+    boton_continuar.pack(pady=12, fill="x", padx=40)
+
     def volver():
         nueva.destroy()
         ventana.deiconify()
-    tk.Button(nueva, text= "volver", command=volver, font= ("Arial", 16), fg= "white", bg= "#000000", bd=0 ,activebackground="black", activeforeground= "#ffff00").pack()
+
+    boton_volver = tk.Button(frame_menu, text="Volver", command=volver,
+                             font=("Arial", 16), fg="white", bg="#000000", bd=0,
+                             activebackground="black", activeforeground="#ffff00")
+    boton_volver.pack(pady=12, fill="x", padx=40)
 
 
 def creditos():
