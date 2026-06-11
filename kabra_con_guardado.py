@@ -619,10 +619,11 @@ def mover_jugador(pasos, cambiar_turno=True):
         try:
             # Ejecuta el script aleatorio y captura la salida de la consola (stdout)
             resultado = subprocess.run(
-                [sys.executable, ruta_script], 
-                capture_output=True, 
-                text=True
-            )
+                                    [sys.executable, ruta_script], 
+                                    stdout=subprocess.PIPE, 
+                                    stderr=subprocess.PIPE, 
+                                    text=True
+)
             
             # Limpiamos el texto recibido (quita espacios y saltos de línea)
             respuesta = resultado.stdout.strip()
