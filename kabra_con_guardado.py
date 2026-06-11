@@ -320,7 +320,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 27
+CANTIDAD_MINIJUEGOS = 90
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
@@ -619,37 +619,40 @@ def mover_jugador(pasos, cambiar_turno=True):
         try:
             # Ejecuta el script aleatorio y captura la salida de la consola (stdout)
             resultado = subprocess.run(
-                                    [sys.executable, ruta_script], 
-                                    stdout=subprocess.PIPE, 
-                                    stderr=subprocess.PIPE, 
-                                    text=True
-)
-            
+                [sys.executable, ruta_script],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                env={**os.environ, "PYTHONIOENCODING": "utf-8"}
+            )
+
             # Limpiamos el texto recibido (quita espacios y saltos de línea)
             respuesta = resultado.stdout.strip()
-            
-            player = "j1" if turno_actual == "J1" else "j2"
 
             # Usar if/in evita fallos por espacios o textos extra en la consola
             if "GANO" in respuesta:
+                jugador_resultado = turno_actual
                 print("registrado")
                 imprimir_alerta("GANASTE UN MINIJUEGO", "#55C44B", 1400)
-                if turno_actual == "J1":
+                if jugador_resultado == "J1":
                     P1 += 1
                 else:
                     P2 += 1
-                print(f"¡Ganaste el minijuego! {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
-                ventana_dado.after(1400, lambda: mover_jugador(3))
+                print(f"¡Ganaste el minijuego! {jugador_resultado} ahora vale: {P1 if jugador_resultado == 'J1' else P2}")
+                ventana_dado.after(1400, lambda turno=jugador_resultado: mover_jugador_por_turno(3, turno))
 
             elif "PERDIO" in respuesta:
+                jugador_resultado = turno_actual
                 imprimir_alerta("PERDISTE UN MINIJUEGO", "#C4634B", 1400)
                 print("registradoP")
-                if turno_actual == "J1":
+                if jugador_resultado == "J1":
                     P1 -= 1
                 else:
                     P2 -= 1
-                ventana_dado.after(1400, lambda: mover_jugador(-3))
-                print(f"Perdiste el minijuego. {turno_actual} ahora vale: {P1 if turno_actual == 'J1' else P2}")
+                print(f"Perdiste el minijuego. {jugador_resultado} ahora vale: {P1 if jugador_resultado == 'J1' else P2}")
+                ventana_dado.after(1400, lambda turno=jugador_resultado: mover_jugador_por_turno(-3, turno))
 
             else:
                 # Imprime la respuesta entre corchetes [] para ver si tiene espacios o texto oculto
@@ -730,6 +733,14 @@ def mover_jugador(pasos, cambiar_turno=True):
         
     pantalla.update()
     boton_lanzar.config(state="normal")
+
+
+def mover_jugador_por_turno(pasos, turno):
+    global turno_actual
+    turno_original = turno_actual
+    turno_actual = turno
+    mover_jugador(pasos, cambiar_turno=False)
+    turno_actual = turno_original
 
 pantalla.listen()
 

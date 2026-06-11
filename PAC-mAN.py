@@ -167,15 +167,13 @@ def win():
     
     if vidas_pacman <= 0:
         juego_activo = False
-        
         print("PERDIO")
-        
+        ventana.after(1000, ventana.destroy)
         return
     if len(mapa_ids_bolitas) == 0:
-        juego_activo =False
+        juego_activo = False
         print("GANO")
-
-        
+        ventana.after(1000, ventana.destroy)
         return
 
 def mapa_pacman():
@@ -340,7 +338,7 @@ def mover_pacman():
 def modo_frightened():
     global modo_fantasma
     modo_fantasma = "frightened"
-    print ("🍬 ¡PAC-MAN SE METIÓ UN BAZUCO! Fantasmas asustados.")
+    print("PAC-MAN comió una baya de poder. Fantasmas asustados.")
     
     canvas.itemconfig(blinky_id, fill="#0000bb", outline="#0000bb")
     canvas.itemconfig(pinky_id, fill="#0000bb", outline="#0000bb")
@@ -530,7 +528,7 @@ def abstinencia():
         return
     
     modo_fantasma = modo_anterior
-    print("⚠️ ¡los fastasmas estan en abstinencia y periguen la keta que se metio pacman!")
+    print("Los fantasmas salen de la debilidad y vuelven a perseguir a Pac-Man.")
     if not blinky_muerto:
         canvas.itemconfig(blinky_id, fill="red", outline="red")
         canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
@@ -648,7 +646,7 @@ def ghost_busters():
         canvas.itemconfig(blinky_id, fill="", outline="")
         canvas.itemconfig(blinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(blinky_pupula_right_id, fill="blue", outline="blue")  
-        print("🎯 ¡Blinky devorado! Sus ojos corren a la casa.")
+        print("Blinky devorado. Sus ojos regresan a casa.")
         
     if pacman_fila == pinky_fila and pacman_col == pinky_col and not pinky_muerto:
         puntuacion += 200
@@ -658,7 +656,7 @@ def ghost_busters():
         canvas.itemconfig(pinky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(pinky_pupula_right_id, fill="blue", outline="blue")
         canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
-        print("🎯 ¡Pinky devorada! Sus ojos corren a la casa.")
+        print("Pinky devorada. Sus ojos regresan a casa.")
         
     if pacman_fila == inky_fila and pacman_col == inky_col and not inky_muerto:
         puntuacion += 200
@@ -668,7 +666,7 @@ def ghost_busters():
         canvas.itemconfig(inky_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(inky_pupila_right_id, fill="blue", outline="blue")
         canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
-        print("🎯 ¡Inky devorado! Sus ojos corren a la casa.")
+        print("Inky devorado. Sus ojos regresan a casa.")
         
     if pacman_fila == clyde_fila and pacman_col == clyde_col and not clyde_muerto:
         puntuacion += 200
@@ -678,7 +676,7 @@ def ghost_busters():
         canvas.itemconfig(clyde_pupila_left_id, fill="blue", outline="blue")
         canvas.itemconfig(clyde_pupula_right_id, fill="blue", outline="blue")
         canvas.itemconfig(score_texto_id, text=f"{puntuacion:02d}")
-        print("🎯 ¡Clyde devorado! Sus ojos corren a la casa.")
+        print("Clyde devorado. Sus ojos regresan a casa.")
         
 #??//funciones de fastasmas///??
 
