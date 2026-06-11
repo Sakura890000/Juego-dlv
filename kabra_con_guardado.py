@@ -320,7 +320,7 @@ alertas_lucky.color("yellow")
 alertas_lucky.goto(0, 20)
 
 # --- CAPA DE MINIJUEGOS ---
-CANTIDAD_MINIJUEGOS = 90
+CANTIDAD_MINIJUEGOS = 27
 casillas_juego = set()
 
 pintor_juego = tr.Turtle()
